@@ -7,7 +7,9 @@ install(
   DIRECTORY
     config
     launch
+    maps
     resource
+    routes
     rviz
   DESTINATION share/${PROJECT_NAME}
   OPTIONAL

@@ -1,0 +1,20 @@
+route_name: warehouse_loop
+frame_id: map
+loop_forever: false
+waypoints:
+  - name: dock
+    position: {x: 0.0, y: 0.0, z: 0.0}
+    orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+    dwell_seconds: 0.5
+  - name: aisle_entry
+    position: {x: 1.2, y: 0.0, z: 0.0}
+    orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+    dwell_seconds: 0.5
+  - name: rack_corner
+    position: {x: 1.2, y: 1.0, z: 0.0}
+    orientation: {x: 0.0, y: 0.0, z: 0.7071, w: 0.7071}
+    dwell_seconds: 0.5
+  - name: dock_return
+    position: {x: 0.0, y: 0.0, z: 0.0}
+    orientation: {x: 0.0, y: 0.0, z: 1.0, w: 0.0}
+    dwell_seconds: 0.5

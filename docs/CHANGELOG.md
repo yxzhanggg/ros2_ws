@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-06-20 - Phase 7 Navigation and Mapping Baseline
+
+### Added
+
+- Added `sentinel_bringup/launch/mapping.launch.py` for the intended simulation, teleop, `twist_mux`, and `slam_toolbox` mapping stack.
+- Added `sentinel_bringup/launch/nav.launch.py` for the intended simulation, mission manager, `twist_mux`, and Nav2 bringup stack.
+- Added SLAM, Nav2, and twist mux parameter files under `sentinel_bringup/config/`.
+- Added a small demo occupancy map and an example `warehouse_loop` patrol route under `sentinel_bringup/maps/` and `sentinel_bringup/routes/`.
+- Updated `sentinel_bringup` installation rules so config, launch, maps, routes, resource, and RViz directories are installed together.
+
+### Changed
+
+- Updated README, `docs/PHASE_TESTS.md`, and `docs/DEPENDENCIES.md` with Phase 7 commands and dependency findings.
+- Added explicit launch-time dependency checks so Phase 7 mapping/navigation launches report missing packages cleanly on the current `nexus` image.
+
+### Verified
+
+- `colcon build --packages-select sentinel_bringup --event-handlers console_direct+` passed.
+- `colcon test --packages-select sentinel_bringup --event-handlers console_direct+` plus `colcon test-result --verbose` passed: 84 tests, 0 errors, 0 failures, 4 skipped.
+- `ros2 launch sentinel_bringup mapping.launch.py start_sim:=false start_joy:=false` reported missing `slam_toolbox` and `twist_mux`.
+- `ros2 launch sentinel_bringup nav.launch.py start_sim:=false start_mission:=false` reported missing `nav2_bringup`, `nav2_msgs`, and `twist_mux`.
+
+### Blocked
+
+- Full Phase 7 DoD is blocked because `slam_toolbox`, `nav2_bringup`, and `nav2_msgs` are not installed and were not found as normal ROS Lyrical apt packages in the current index. `twist_mux` is available from apt but not installed.
+- The `twist_mux` velocity message type and final remapping must be verified after installation because the current teleop/control path uses `geometry_msgs/msg/TwistStamped`.
+
 ## 2026-06-20 - Phase 6 Mission Management Baseline
 
 ### Added

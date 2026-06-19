@@ -4,7 +4,7 @@ Nexus Sentinel is a ROS 2 simulation workspace for a warehouse and campus inspec
 
 ## Current Phase
 
-Phase 6 is in progress: the workspace contains the control and DualSense teleoperation baselines plus a mission-management layer. The `mode_manager` lifecycle node publishes the current rover mode, accepts `/set_mode` requests, handles `/patrol_route` action goals in simulation mode, and `mission_logger` writes structured JSONL mission events.
+Phase 7 is in progress: the workspace contains the control, DualSense teleoperation, mission-management, and navigation/mapping launch baselines. `sentinel_bringup` now includes SLAM, Nav2, twist mux, demo map, and route configuration files; full runtime navigation is blocked until the matching ROS Lyrical `slam_toolbox`, `nav2_bringup`, `nav2_msgs`, and `twist_mux` packages are installed on `nexus`.
 
 ## Workspace Layout
 
@@ -38,9 +38,9 @@ colcon test
 colcon test-result --verbose
 ```
 
-Latest Phase 6 verification result: `sentinel_mission` and `sentinel_bringup` build and test cleanly. Runtime validation uses `ros2 launch sentinel_bringup mission.launch.py`, then checks `/mode_manager`, `/rover_mode`, `/set_mode`, `/patrol_route`, and `log/mission_events.jsonl`.
+Latest Phase 7 verification result: `sentinel_bringup` builds and tests cleanly with the mapping/navigation launch and config baseline. Runtime validation currently checks that `mapping.launch.py` and `nav.launch.py` fail fast with explicit missing-dependency messages instead of half-starting an unusable stack.
 
-For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-6 smoke tests and future Phase 7-10 acceptance-test templates.
+For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-7 smoke tests and future Phase 8-10 acceptance-test templates.
 
 ## Simulation
 
@@ -109,6 +109,22 @@ ros2 launch sentinel_bringup mission.launch.py
 `mode_manager` is a C++ lifecycle node. It publishes `/rover_mode` with transient-local QoS, provides `/set_mode`, accepts mode requests from `/rover_mode_request`, and exposes the `/patrol_route` action. Because Nav2 is not installed on the current `nexus` image, Phase 6 patrol execution is a mission-manager simulation: it publishes PATROL feedback for each waypoint and returns to TELEOP when the route completes.
 
 `mission_logger` is a Python node using Lyrical's available `rclpy.experimental.AsyncNode`. It records mode changes and record start/stop requests to `log/mission_events.jsonl`.
+
+## Navigation And Mapping
+
+Phase 7 adds launch and configuration assets for the intended SLAM/Nav2 stack:
+
+| File | Purpose |
+| --- | --- |
+| `src/sentinel_bringup/launch/mapping.launch.py` | Starts simulation, teleop, `twist_mux`, and `slam_toolbox` when dependencies are installed |
+| `src/sentinel_bringup/launch/nav.launch.py` | Starts simulation, mission manager, `twist_mux`, and Nav2 bringup when dependencies are installed |
+| `src/sentinel_bringup/config/slam_toolbox.yaml` | Mapping parameters for `/scan`, `odom`, `map`, and `base_footprint` |
+| `src/sentinel_bringup/config/nav2.yaml` | Nav2 AMCL, planner, controller, behavior, waypoint, map, and costmap parameters |
+| `src/sentinel_bringup/config/twist_mux.yaml` | Teleop/Nav2 velocity arbitration and ESTOP lock configuration |
+| `src/sentinel_bringup/maps/sentinel_phase7_demo.yaml` | Small demo map for launch wiring checks once Nav2 is present |
+| `src/sentinel_bringup/routes/warehouse_loop.yaml` | Example warehouse patrol route |
+
+On the current `nexus` image, these launches intentionally stop early and report the missing packages. After the dependencies are installed, rerun the commands in `docs/PHASE_TESTS.md` to validate real map publication, Nav2 action servers, and patrol execution.
 
 ## Interfaces
 

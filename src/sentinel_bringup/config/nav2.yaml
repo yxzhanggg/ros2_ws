@@ -1,0 +1,160 @@
+amcl:
+  ros__parameters:
+    use_sim_time: !!bool true
+    base_frame_id: !!str base_footprint
+    odom_frame_id: !!str odom
+    global_frame_id: !!str map
+    scan_topic: !!str /scan
+    set_initial_pose: !!bool true
+    always_reset_initial_pose: !!bool false
+
+bt_navigator:
+  ros__parameters:
+    use_sim_time: !!bool true
+    global_frame: !!str map
+    robot_base_frame: !!str base_footprint
+    odom_topic: !!str /diff_drive_controller/odom
+    default_nav_to_pose_bt_xml: !!str ""
+    default_nav_through_poses_bt_xml: !!str ""
+
+controller_server:
+  ros__parameters:
+    use_sim_time: !!bool true
+    controller_frequency: !!float 20.0
+    min_x_velocity_threshold: !!float 0.001
+    min_y_velocity_threshold: !!float 0.5
+    min_theta_velocity_threshold: !!float 0.001
+    failure_tolerance: !!float 0.3
+    progress_checker_plugins: [progress_checker]
+    goal_checker_plugins: [general_goal_checker]
+    controller_plugins: [FollowPath]
+    progress_checker:
+      plugin: !!str nav2_controller::SimpleProgressChecker
+      required_movement_radius: !!float 0.35
+      movement_time_allowance: !!float 10.0
+    general_goal_checker:
+      stateful: !!bool true
+      plugin: !!str nav2_controller::SimpleGoalChecker
+      xy_goal_tolerance: !!float 0.25
+      yaw_goal_tolerance: !!float 0.25
+    FollowPath:
+      plugin: !!str nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController
+      desired_linear_vel: !!float 0.35
+      lookahead_dist: !!float 0.6
+      min_lookahead_dist: !!float 0.3
+      max_lookahead_dist: !!float 0.9
+      rotate_to_heading_angular_vel: !!float 0.8
+      transform_tolerance: !!float 0.2
+
+planner_server:
+  ros__parameters:
+    use_sim_time: !!bool true
+    expected_planner_frequency: !!float 5.0
+    planner_plugins: [GridBased]
+    GridBased:
+      plugin: !!str nav2_navfn_planner::NavfnPlanner
+      tolerance: !!float 0.5
+      use_astar: !!bool false
+      allow_unknown: !!bool true
+
+behavior_server:
+  ros__parameters:
+    use_sim_time: !!bool true
+    costmap_topic: !!str local_costmap/costmap_raw
+    footprint_topic: !!str local_costmap/published_footprint
+    cycle_frequency: !!float 10.0
+    behavior_plugins: [spin, backup, drive_on_heading, wait]
+    global_frame: !!str odom
+    robot_base_frame: !!str base_footprint
+    transform_tolerance: !!float 0.2
+    simulate_ahead_time: !!float 2.0
+    max_rotational_vel: !!float 0.8
+    min_rotational_vel: !!float 0.2
+    rotational_acc_lim: !!float 2.5
+    spin:
+      plugin: !!str nav2_behaviors/Spin
+    backup:
+      plugin: !!str nav2_behaviors/BackUp
+    drive_on_heading:
+      plugin: !!str nav2_behaviors/DriveOnHeading
+    wait:
+      plugin: !!str nav2_behaviors/Wait
+
+waypoint_follower:
+  ros__parameters:
+    use_sim_time: !!bool true
+    loop_rate: !!int 20
+    stop_on_failure: !!bool true
+    waypoint_task_executor_plugin: !!str wait_at_waypoint
+    wait_at_waypoint:
+      plugin: !!str nav2_waypoint_follower::WaitAtWaypoint
+      enabled: !!bool true
+      waypoint_pause_duration: !!int 1000
+
+map_server:
+  ros__parameters:
+    use_sim_time: !!bool true
+    yaml_filename: !!str ""
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      use_sim_time: !!bool true
+      update_frequency: !!float 5.0
+      publish_frequency: !!float 2.0
+      global_frame: !!str odom
+      robot_base_frame: !!str base_footprint
+      rolling_window: !!bool true
+      width: !!float 4.0
+      height: !!float 4.0
+      resolution: !!float 0.05
+      robot_radius: !!float 0.32
+      plugins: [obstacle_layer, inflation_layer]
+      obstacle_layer:
+        plugin: !!str nav2_costmap_2d::ObstacleLayer
+        enabled: !!bool true
+        observation_sources: !!str scan
+        scan:
+          topic: !!str /scan
+          max_obstacle_height: !!float 2.0
+          clearing: !!bool true
+          marking: !!bool true
+          data_type: !!str LaserScan
+          raytrace_max_range: !!float 12.0
+          obstacle_max_range: !!float 10.0
+      inflation_layer:
+        plugin: !!str nav2_costmap_2d::InflationLayer
+        cost_scaling_factor: !!float 3.0
+        inflation_radius: !!float 0.55
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      use_sim_time: !!bool true
+      update_frequency: !!float 2.0
+      publish_frequency: !!float 1.0
+      global_frame: !!str map
+      robot_base_frame: !!str base_footprint
+      robot_radius: !!float 0.32
+      resolution: !!float 0.05
+      track_unknown_space: !!bool true
+      plugins: [static_layer, obstacle_layer, inflation_layer]
+      static_layer:
+        plugin: !!str nav2_costmap_2d::StaticLayer
+        map_subscribe_transient_local: !!bool true
+      obstacle_layer:
+        plugin: !!str nav2_costmap_2d::ObstacleLayer
+        enabled: !!bool true
+        observation_sources: !!str scan
+        scan:
+          topic: !!str /scan
+          max_obstacle_height: !!float 2.0
+          clearing: !!bool true
+          marking: !!bool true
+          data_type: !!str LaserScan
+          raytrace_max_range: !!float 12.0
+          obstacle_max_range: !!float 10.0
+      inflation_layer:
+        plugin: !!str nav2_costmap_2d::InflationLayer
+        cost_scaling_factor: !!float 3.0
+        inflation_radius: !!float 0.55

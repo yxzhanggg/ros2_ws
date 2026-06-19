@@ -1,6 +1,6 @@
 # Phase Test Playbook
 
-这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-6 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 7-10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时每个模板会根据实际代码继续更新成实测命令。
+这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-7 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 8-10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时每个模板会根据实际代码继续更新成实测命令。
 
 通用准备命令：
 
@@ -328,7 +328,41 @@ wait "${launch_pid}" || true
 
 ## Phase 7 - Navigation And Mapping
 
-状态：待实现。完成后用下面命令验证 slam_toolbox、Nav2 和巡逻路线闭环。
+状态：工程基线已实现，完整 SLAM/Nav2 运行被当前系统依赖阻塞。当前 `nexus` 缺少 `slam_toolbox`、`nav2_bringup`、`nav2_msgs`，`twist_mux` 有 apt 候选但尚未安装。
+
+### Package Check
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/lyrical/setup.bash
+
+colcon build --packages-select sentinel_bringup --event-handlers console_direct+
+colcon test --packages-select sentinel_bringup --event-handlers console_direct+
+colcon test-result --verbose
+```
+
+期望结果：`sentinel_bringup` 构建和测试通过。当前 `nexus` 实测汇总为 `84 tests, 0 errors, 0 failures, 4 skipped`。
+
+### Dependency Smoke Test
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/lyrical/setup.bash
+source install/setup.bash
+
+ros2 launch sentinel_bringup mapping.launch.py start_sim:=false start_joy:=false
+ros2 launch sentinel_bringup nav.launch.py start_sim:=false start_mission:=false
+```
+
+当前期望结果：
+
+- mapping launch 明确提示缺少 `slam_toolbox` 和 `twist_mux`
+- nav launch 明确提示缺少 `nav2_bringup`、`nav2_msgs` 和 `twist_mux`
+- launch 不会半启动仿真或导航进程
+
+### Full Runtime Test After Dependencies Are Installed
+
+等 `slam_toolbox`、Nav2 和 `twist_mux` 安装并重新 `source install/setup.bash` 后，再运行下面的完整验收命令。
 
 ```bash
 cd ~/ros2_ws
@@ -366,6 +400,16 @@ wait "${nav_pid}" || true
 - Nav2 关键节点启动
 - Nav2 action server 可见
 - 后续巡逻 action 能驱动机器人完成一条路线
+
+Phase 7 已经提供：
+
+- `sentinel_bringup/launch/mapping.launch.py`
+- `sentinel_bringup/launch/nav.launch.py`
+- `sentinel_bringup/config/slam_toolbox.yaml`
+- `sentinel_bringup/config/nav2.yaml`
+- `sentinel_bringup/config/twist_mux.yaml`
+- `sentinel_bringup/maps/sentinel_phase7_demo.yaml`
+- `sentinel_bringup/routes/warehouse_loop.yaml`
 
 ## Phase 8 - Perception And Composition
 

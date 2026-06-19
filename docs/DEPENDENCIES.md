@@ -53,6 +53,7 @@ source /opt/ros/lyrical/setup.bash
 | Phase 4 controller dependency check | `controller_manager` is installed, but `ros2controlcli`, `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster` are missing |
 | Phase 4 package check | `colcon build --packages-select sentinel_description sentinel_control sentinel_gazebo` and matching `colcon test` completed: 47 tests, 0 errors, 0 failures, 1 skipped |
 | Phase 6 mission package check | `colcon build --packages-select sentinel_mission sentinel_bringup` and matching `colcon test` completed: 75 tests, 0 errors, 0 failures, 4 skipped |
+| Phase 7 bringup package check | `colcon build --packages-select sentinel_bringup` and matching `colcon test` completed: 84 tests, 0 errors, 0 failures, 4 skipped |
 
 ### Gazebo / gz
 
@@ -198,6 +199,45 @@ nav2_bringup
 ```
 
 The original Phase 6 design called for Nav2 handoff and a `CallbackGroupEventsExecutor`. On this Lyrical installation, `nav2_msgs` and `nav2_bringup` are not installed, and the available executor API is `rclcpp::experimental::executors::EventsExecutor`. Phase 6 therefore implements the mission manager, mode service, teleop mode-request integration, patrol action contract, and JSONL logging now; the patrol action simulates waypoint execution until Phase 7 adds real Nav2 integration.
+
+### Phase 7 Navigation Dependencies
+
+Current ROS package lookup:
+
+```bash
+source /opt/ros/lyrical/setup.bash
+ros2 pkg list | grep -E '^(nav2|slam_toolbox|twist_mux|nav2_msgs|nav2_bringup)'
+```
+
+Observed result: no Nav2, `slam_toolbox`, or `twist_mux` ROS packages are currently installed.
+
+APT availability checked with `apt-cache search ros-lyrical ...`:
+
+```text
+ros-lyrical-twist-mux
+ros-lyrical-twist-mux-msgs
+ros-lyrical-robot-localization
+ros-lyrical-nav2-minimal-tb3-sim
+ros-lyrical-nav2-minimal-tb4-description
+ros-lyrical-nav2-minimal-tb4-sim
+```
+
+The usual Phase 7 packages were not found as normal apt candidates in the current index:
+
+```text
+ros-lyrical-slam-toolbox
+ros-lyrical-nav2-bringup
+ros-lyrical-nav2-msgs
+ros-lyrical-navigation2
+ros-lyrical-nav2-map-server
+ros-lyrical-nav2-amcl
+ros-lyrical-nav2-controller
+ros-lyrical-nav2-planner
+ros-lyrical-nav2-bt-navigator
+ros-lyrical-nav2-waypoint-follower
+```
+
+Phase 7 therefore installs project-side launch/config/map/route assets and validates that the launch files fail fast with clear missing-dependency messages. Full mapping and autonomous patrol remain blocked until matching Lyrical packages are installed or an approved source build/vendor strategy is chosen. After `twist_mux` is installed, verify its current Lyrical velocity message type before wiring it permanently, because the validated Phase 5/6 control path currently uses `geometry_msgs/msg/TwistStamped`.
 
 ## Phase 1 Package Baseline
 
