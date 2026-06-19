@@ -4,7 +4,7 @@ Nexus Sentinel is a ROS 2 simulation workspace for a warehouse and campus inspec
 
 ## Current Phase
 
-Phase 7 is in progress: the workspace contains the control, DualSense teleoperation, mission-management, and navigation/mapping launch baselines. `sentinel_bringup` now includes SLAM, Nav2, twist mux, demo map, and route configuration files; full runtime navigation is blocked until the matching ROS Lyrical `slam_toolbox`, `nav2_bringup`, `nav2_msgs`, and `twist_mux` packages are installed on `nexus`.
+Phase 8 is in progress: the workspace contains the control, DualSense teleoperation, mission-management, navigation/mapping launch, and composable perception baselines. `sentinel_perception` now provides a C++ component container with a scan filter and an image marker detector using intra-process communication.
 
 ## Workspace Layout
 
@@ -38,9 +38,9 @@ colcon test
 colcon test-result --verbose
 ```
 
-Latest Phase 7 verification result: `sentinel_bringup` builds and tests cleanly with the mapping/navigation launch and config baseline. Runtime validation currently checks that `mapping.launch.py` and `nav.launch.py` fail fast with explicit missing-dependency messages instead of half-starting an unusable stack.
+Latest Phase 8 verification result: `sentinel_perception` builds and tests cleanly. Runtime validation launches `sentinel_perception_container`, confirms both components are loaded, publishes synthetic `/scan` and `/camera/image`, and receives `/scan_filtered` plus `/detections`.
 
-For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-7 smoke tests and future Phase 8-10 acceptance-test templates.
+For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-8 smoke tests and future Phase 9-10 acceptance-test templates.
 
 ## Simulation
 
@@ -125,6 +125,23 @@ Phase 7 adds launch and configuration assets for the intended SLAM/Nav2 stack:
 | `src/sentinel_bringup/routes/warehouse_loop.yaml` | Example warehouse patrol route |
 
 On the current `nexus` image, these launches intentionally stop early and report the missing packages. After the dependencies are installed, rerun the commands in `docs/PHASE_TESTS.md` to validate real map publication, Nav2 action servers, and patrol execution.
+
+## Perception
+
+Launch the Phase 8 composable perception baseline:
+
+```bash
+ros2 launch sentinel_perception perception.launch.py
+```
+
+The launch starts `rclcpp_components`' `component_container_mt` with intra-process communication enabled for:
+
+| Component | Input | Output | Role |
+| --- | --- | --- | --- |
+| `sentinel_perception::ScanFilterComponent` | `/scan` | `/scan_filtered` | Clamps invalid/out-of-range lidar ranges for later navigation/perception consumers |
+| `sentinel_perception::ImageMarkerComponent` | `/camera/image` | `/detections` | Emits a lightweight JSON detection summary based on image brightness |
+
+Phase 0 found no NVIDIA/CUDA stack on `nexus`, so Phase 8 documents GPU/rosidl buffer zero-copy as disabled and validates the CPU intra-process component path instead.
 
 ## Interfaces
 

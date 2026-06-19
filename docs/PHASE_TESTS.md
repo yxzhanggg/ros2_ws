@@ -1,6 +1,6 @@
 # Phase Test Playbook
 
-这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-7 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 8-10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时每个模板会根据实际代码继续更新成实测命令。
+这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-8 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 9-10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时每个模板会根据实际代码继续更新成实测命令。
 
 通用准备命令：
 
@@ -413,7 +413,22 @@ Phase 7 已经提供：
 
 ## Phase 8 - Perception And Composition
 
-状态：待实现。完成后用下面命令验证 component container、intra-process 配置和感知输出。
+目标：验证 `sentinel_perception` 的 C++ component library、同进程 component container、intra-process 配置、`/scan_filtered` 和 `/detections` 输出。
+
+### Package Check
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/lyrical/setup.bash
+
+colcon build --packages-select sentinel_perception --event-handlers console_direct+
+colcon test --packages-select sentinel_perception --event-handlers console_direct+
+colcon test-result --verbose
+```
+
+期望结果：`sentinel_perception` 构建和测试通过。当前 `nexus` 实测汇总为 `108 tests, 0 errors, 0 failures, 8 skipped`。
+
+### Runtime Smoke Test
 
 ```bash
 cd ~/ros2_ws
@@ -427,8 +442,22 @@ sleep 5
 ros2 component list
 ros2 node info /sentinel_perception_container
 ros2 topic list | grep -E 'scan_filtered|detections|camera'
-ros2 topic echo /scan_filtered --once
-ros2 topic echo /detections --once
+
+timeout 8s ros2 topic echo /scan_filtered --once > /tmp/sentinel_scan_filtered.txt &
+scan_echo=$!
+sleep 1
+ros2 topic pub /scan sensor_msgs/msg/LaserScan --once \
+  "{header: {frame_id: lidar_link}, angle_min: 0.0, angle_max: 0.3, angle_increment: 0.1, time_increment: 0.0, scan_time: 0.1, range_min: 0.05, range_max: 20.0, ranges: [0.01, 1.0, 99.0, 2.0], intensities: []}"
+wait "${scan_echo}"
+cat /tmp/sentinel_scan_filtered.txt
+
+timeout 8s ros2 topic echo /detections --once > /tmp/sentinel_detection.txt &
+det_echo=$!
+sleep 1
+ros2 topic pub /camera/image sensor_msgs/msg/Image --once \
+  "{header: {frame_id: camera_link}, height: 1, width: 4, encoding: mono8, is_bigendian: 0, step: 4, data: [255, 255, 255, 255]}"
+wait "${det_echo}"
+cat /tmp/sentinel_detection.txt
 
 kill -INT "${launch_pid}"
 wait "${launch_pid}" || true
@@ -437,9 +466,10 @@ wait "${launch_pid}" || true
 期望结果：
 
 - 同一个 component container 内至少有两个 perception component
-- 文档记录 intra-process 是否启用
-- 感知输出 topic 能收到消息
-- 无 GPU 环境下零拷贝/GPU demo 会优雅降级
+- `/sentinel_perception_container` 内有 `/scan_filter` 和 `/image_marker_detector`
+- `/scan_filtered` 能收到 `sensor_msgs/msg/LaserScan`，无效/越界 ranges 会被夹到 `max_range_m=12.0`
+- `/detections` 能收到 JSON 字符串，synthetic bright image 会输出 `bright_marker: true`
+- Phase 0 未检测到 NVIDIA/CUDA，因此 Phase 8 使用 CPU intra-process component path，GPU/rosidl buffer zero-copy demo 记录为 disabled
 
 ## Phase 9 - Diagnostics, Observability, And Tests
 

@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-06-20 - Phase 8 Composable Perception Baseline
+
+### Added
+
+- Added `sentinel_perception::ScanFilterComponent`, a C++ composable node that subscribes to `/scan` with SensorDataQoS and publishes `/scan_filtered`.
+- Added `sentinel_perception::ImageMarkerComponent`, a C++ composable node that subscribes to `/camera/image` and publishes lightweight JSON detection summaries on `/detections`.
+- Added `sentinel_perception/launch/perception.launch.py` using `rclcpp_components` `component_container_mt` with intra-process communication enabled for both components.
+- Added `sentinel_perception/config/perception.yaml` with typed parameters for lidar filtering and image brightness detection.
+
+### Changed
+
+- Updated `sentinel_perception` CMake/package metadata to build and register the component library.
+- Updated README, `docs/PHASE_TESTS.md`, and `docs/DEPENDENCIES.md` with Phase 8 commands, test outputs, and GPU/zero-copy notes.
+
+### Verified
+
+- `colcon build --packages-select sentinel_perception --event-handlers console_direct+` passed.
+- `colcon test --packages-select sentinel_perception --event-handlers console_direct+` plus `colcon test-result --verbose` passed: 108 tests, 0 errors, 0 failures, 8 skipped.
+- `ros2 launch sentinel_perception perception.launch.py` loaded `/scan_filter` and `/image_marker_detector` into `/sentinel_perception_container`.
+- Synthetic `/scan` input produced `/scan_filtered` with invalid/out-of-range values clamped to `12.0`.
+- Synthetic mono8 `/camera/image` input produced `/detections` JSON with `mean_brightness: 255.00` and `bright_marker: true`.
+
+### Notes
+
+- No NVIDIA/CUDA path was detected in Phase 0, so Phase 8 validates CPU intra-process component communication and leaves GPU/rosidl buffer zero-copy disabled for this machine.
+
 ## 2026-06-20 - Phase 7 Navigation and Mapping Baseline
 
 ### Added

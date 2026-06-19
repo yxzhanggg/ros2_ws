@@ -54,6 +54,7 @@ source /opt/ros/lyrical/setup.bash
 | Phase 4 package check | `colcon build --packages-select sentinel_description sentinel_control sentinel_gazebo` and matching `colcon test` completed: 47 tests, 0 errors, 0 failures, 1 skipped |
 | Phase 6 mission package check | `colcon build --packages-select sentinel_mission sentinel_bringup` and matching `colcon test` completed: 75 tests, 0 errors, 0 failures, 4 skipped |
 | Phase 7 bringup package check | `colcon build --packages-select sentinel_bringup` and matching `colcon test` completed: 84 tests, 0 errors, 0 failures, 4 skipped |
+| Phase 8 perception package check | `colcon build --packages-select sentinel_perception` and matching `colcon test` completed: 108 tests, 0 errors, 0 failures, 8 skipped |
 
 ### Gazebo / gz
 
@@ -238,6 +239,47 @@ ros-lyrical-nav2-waypoint-follower
 ```
 
 Phase 7 therefore installs project-side launch/config/map/route assets and validates that the launch files fail fast with clear missing-dependency messages. Full mapping and autonomous patrol remain blocked until matching Lyrical packages are installed or an approved source build/vendor strategy is chosen. After `twist_mux` is installed, verify its current Lyrical velocity message type before wiring it permanently, because the validated Phase 5/6 control path currently uses `geometry_msgs/msg/TwistStamped`.
+
+### Phase 8 Perception Dependencies
+
+Installed and used:
+
+```text
+rclcpp
+rclcpp_components
+sensor_msgs
+std_msgs
+composition
+```
+
+`rclcpp_components` provides these container executables on this image:
+
+```text
+component_container
+component_container_event
+component_container_isolated
+component_container_mt
+```
+
+Phase 8 uses `component_container_mt`. Lyrical prints a deprecation warning suggesting the newer `component_container --executor-type multi-threaded` form for a future migration, but the current executable works and loaded both project components successfully.
+
+GPU / zero-copy status:
+
+```text
+NVIDIA/CUDA stack: not detected in Phase 0
+Phase 8 GPU/rosidl buffer demo: disabled
+Validated path: CPU C++ components with intra-process communication enabled
+```
+
+Runtime smoke result:
+
+```text
+/sentinel_perception_container
+  1  /scan_filter
+  2  /image_marker_detector
+/scan_filtered clamps invalid ranges to 12.0
+/detections publishes {"mean_brightness":255.00,"bright_marker":true}
+```
 
 ## Phase 1 Package Baseline
 

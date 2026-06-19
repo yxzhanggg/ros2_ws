@@ -1,0 +1,12 @@
+scan_filter:
+  ros__parameters:
+    use_sim_time: !!bool true
+    min_range_m: !!float 0.08
+    max_range_m: !!float 12.0
+    replace_invalid_with_max: !!bool true
+
+image_marker_detector:
+  ros__parameters:
+    use_sim_time: !!bool true
+    bright_threshold: !!float 180.0
+    sample_stride: !!int 4
