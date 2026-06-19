@@ -4,7 +4,7 @@ Nexus Sentinel is a ROS 2 simulation workspace for a warehouse and campus inspec
 
 ## Current Phase
 
-Phase 4 is complete for the control baseline: the workspace contains the package skeletons, custom ROS 2 interfaces, a parameterized Nexus Sentinel Xacro model, a headless Gazebo warehouse simulation with lidar, IMU, and camera topic bridges, and validated ros2_control joint-state, differential-drive, and IMU broadcaster startup.
+Phase 5 is in progress: the workspace contains the control baseline plus a DualSense teleoperation pipeline. The `gamepad_interface` lifecycle node maps `/joy` to stamped differential-drive commands, mode-request topics, rosbag request topics, and an ESTOP lock topic.
 
 ## Workspace Layout
 
@@ -38,7 +38,7 @@ colcon test
 colcon test-result --verbose
 ```
 
-Latest Phase 4 verification result: selected control/simulation packages built successfully; controller manager loaded `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster`; `/diff_drive_controller/odom`, `/diff_drive_controller/cmd_vel`, `/imu_sensor_broadcaster/imu`, `/joint_states`, and TF were available during a clean headless simulation run.
+Latest Phase 5 verification result: `sentinel_teleop` builds and its unit tests cover deadman, speed scaling, ESTOP latch/clear, mode buttons, and record request detection. Runtime validation uses `ros2 launch sentinel_bringup teleop.launch.py`.
 
 For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-3 smoke tests and future Phase 4-10 acceptance-test templates.
 
@@ -81,6 +81,22 @@ ros2 launch sentinel_gazebo sim.launch.py headless:=true spawn_controllers:=true
 ```
 
 Expected active controllers are `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster`. In Lyrical, the differential-drive command and odometry topics are namespaced as `/diff_drive_controller/cmd_vel` and `/diff_drive_controller/odom`; the IMU broadcaster publishes `/imu_sensor_broadcaster/imu`, while the Gazebo bridge also publishes `/imu`.
+
+## Teleoperation
+
+Launch the simulation plus DualSense teleoperation pipeline:
+
+```bash
+ros2 launch sentinel_bringup teleop.launch.py
+```
+
+`joy_node` reads `/dev/input/js0` by default. `gamepad_interface` is a lifecycle node that publishes stamped velocity commands to `/diff_drive_controller/cmd_vel`; L1 is the deadman button, R2 scales speed, Square latches ESTOP, and R1 clears ESTOP. `twist_mux` is not installed on the current `nexus` image, so Phase 5 publishes directly to the controller while also publishing `/cmd_vel_lock` for the later mux integration.
+
+For repeatable command-line validation without touching the controller:
+
+```bash
+ros2 launch sentinel_teleop gamepad.launch.py start_joy:=false
+```
 
 ## Interfaces
 

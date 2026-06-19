@@ -1,0 +1,21 @@
+gamepad_interface:
+  ros__parameters:
+    # DualSense /dev/input/js0 observed in Phase 0:
+    # axes: X=0, Y=1, Z/L2=2, Rx=3, Ry=4, Rz/R2=5, Hat0X=6, Hat0Y=7
+    # buttons: Cross=0, Circle=1, Square=2, Triangle=3, L1=4, R1=5,
+    #          L2=6, R2=7, Create=8, Options=9, PS=10, L3=11, R3=12
+    deadzone: !!float 0.08
+    max_linear_velocity: !!float 0.45
+    max_angular_velocity: !!float 1.3
+    linear_axis: !!int 1
+    angular_axis: !!int 3
+    speed_axis: !!int 5
+    deadman_button: !!int 4
+    teleop_button: !!int 0
+    mapping_button: !!int 3
+    patrol_button: !!int 1
+    estop_button: !!int 2
+    clear_estop_button: !!int 5
+    record_button: !!int 8
+    stop_record_button: !!int 9
+    frame_id: !!str base_footprint

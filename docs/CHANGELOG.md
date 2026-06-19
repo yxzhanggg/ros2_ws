@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-06-19 - Phase 5 DualSense Teleoperation Baseline
+
+### Added
+
+- Added `sentinel_teleop.gamepad_interface`, a Python lifecycle node that maps DualSense `/joy` input to stamped velocity commands, mode-request messages, record-request topics, and an ESTOP lock topic.
+- Added `sentinel_teleop/config/gamepad.yaml` with typed YAML parameters for DualSense axis/button mapping, deadzone, speed limits, and frame id.
+- Added `sentinel_teleop/launch/gamepad.launch.py` for `joy_node` plus automatic lifecycle configure/activate of `gamepad_interface`.
+- Added `sentinel_bringup/launch/teleop.launch.py` to start the Phase 4 simulation/controllers and the Phase 5 teleop pipeline together.
+- Added unit tests for deadman behavior, trigger speed scaling, ESTOP latch/clear, mode buttons, and record request detection.
+
+### Changed
+
+- Updated README and `docs/PHASE_TESTS.md` with Phase 5 launch and validation commands.
+- Recorded that `ros-lyrical-twist-mux` is available in apt but not installed, so the current Phase 5 runtime remaps teleop directly to `/diff_drive_controller/cmd_vel` while publishing `/cmd_vel_lock` for the later mux integration.
+
+### Verified
+
+- `colcon build --packages-select sentinel_teleop sentinel_bringup` passed.
+- `colcon test --packages-select sentinel_teleop sentinel_bringup` plus `colcon test-result --verbose` passed: 52 tests, 0 errors, 0 failures, 1 skipped.
+- `ros2 launch sentinel_teleop gamepad.launch.py start_joy:=false` brought `/gamepad_interface` to lifecycle state `active`.
+- Runtime parameter validation accepted `deadzone=0.12` and rejected `deadzone=0.9`.
+- Synthetic `/joy` input with L1 held produced `/diff_drive_controller/cmd_vel` with `linear.x=0.45` and `angular.z=0.65`; releasing L1 produced zero velocity.
+- Synthetic Square/ESTOP input published `/cmd_vel_lock` as `true` and `/rover_mode_request` with `MODE_ESTOP`.
+
 ## 2026-06-19 - Phase 4 ros2_control Configuration
 
 ### Added

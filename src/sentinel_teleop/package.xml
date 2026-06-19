@@ -13,6 +13,8 @@
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>
   <depend>sentinel_interfaces</depend>
+  <exec_depend>joy</exec_depend>
+  <exec_depend>rosbag2_transport</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

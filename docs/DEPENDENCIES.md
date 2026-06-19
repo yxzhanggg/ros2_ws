@@ -128,6 +128,7 @@ sudo apt-get install -y ros-lyrical-ros2controlcli ros-lyrical-joint-state-broad
 | `jstest` / `evtest` | `/usr/bin/jstest`, `/usr/bin/evtest` |
 | Installed ROS joystick package | `ros-lyrical-joy 3.3.0-4resolute.20260606.031052` is installed |
 | Additional teleop package | `ros-lyrical-teleop-twist-joy 2.6.5-3resolute.20260606.031807` is installed, but the project will still implement its own `gamepad_interface` node as required |
+| Phase 5 mux package | `ros-lyrical-twist-mux` is available from apt (`4.5.1-3resolute.20260606.025639`) but is not installed |
 
 DualSense default axis/button snapshot from `/dev/input/js0`:
 
@@ -173,6 +174,8 @@ These items are required for later phases but were not installed or not usable d
 | Nav2, slam_toolbox, twist_mux, controllers, and any remaining navigation packages | Required by architecture and later phases; package availability still needs complete verification before Phase 3+ | Phase 3 onward |
 
 No network downloads, package installs, `sudo`, system service changes, udev rules, or user group changes were executed by Codex during this Phase 0 refresh. A later source refresh showed that the vendored Gazebo stack is already available through `/opt/ros/lyrical/setup.bash`.
+
+Phase 5 note: because `twist_mux` is not installed, the current teleop launch remaps `gamepad_interface` directly to Lyrical's `/diff_drive_controller/cmd_vel` `TwistStamped` input. The node still publishes `/cmd_vel_lock` so the later mux integration can be added after the package is installed with operator approval.
 
 ## Phase 1 Package Baseline
 

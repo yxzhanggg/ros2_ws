@@ -1,6 +1,6 @@
 # Phase Test Playbook
 
-这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-4 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 5-10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时每个模板会根据实际代码继续更新成实测命令。
+这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-5 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 6-10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时每个模板会根据实际代码继续更新成实测命令。
 
 通用准备命令：
 
@@ -195,7 +195,7 @@ wait "${launch_pid}" || true
 
 ## Phase 5 - DualSense Teleoperation
 
-状态：待实现。完成后用下面命令验证 `joy`、`gamepad_interface`、模式按键、死人开关和急停 lock。
+目标：验证 `joy_node`、`gamepad_interface` lifecycle、DualSense 轴/按键映射、死人开关、ESTOP lock、参数 range 校验，以及遥控命令能进入 Phase 4 的差速控制器。
 
 ```bash
 cd ~/ros2_ws
@@ -204,17 +204,19 @@ source install/setup.bash
 
 ros2 launch sentinel_bringup teleop.launch.py &
 launch_pid=$!
-sleep 5
+sleep 18
 
 ros2 lifecycle get /gamepad_interface
+ros2 topic list -t | sort | grep -E '^/joy|diff_drive_controller/cmd_vel|^/cmd_vel_lock|^/rover_mode_request|record_request'
 ros2 topic echo /joy --once
-ros2 topic echo /cmd_vel_teleop --once
-ros2 topic echo /rover_mode --once
+ros2 topic echo /diff_drive_controller/cmd_vel --once
+ros2 topic echo /rover_mode_request --once
 ros2 topic echo /cmd_vel_lock --once
 
 ros2 param get /gamepad_interface deadzone
 ros2 param set /gamepad_interface deadzone 0.12
 ros2 param get /gamepad_interface deadzone
+ros2 param set /gamepad_interface deadzone 0.9 || true
 
 kill -INT "${launch_pid}"
 wait "${launch_pid}" || true
@@ -222,11 +224,53 @@ wait "${launch_pid}" || true
 
 期望结果：
 
-- `/joy` 能收到 DualSense 输入
-- 按住死人开关并推摇杆时 `/cmd_vel_teleop` 有非零速度
-- 松开死人开关后 `/cmd_vel_teleop` 变为零速
-- Square/方块键进入 ESTOP 并发布 lock
-- 参数更新会经过 range 校验
+- `/joy` 能收到 DualSense 输入。
+- `/gamepad_interface` 自动进入 `active`。
+- 按住 L1 死人开关、推左摇杆/右摇杆，并按 R2 调速时，`/diff_drive_controller/cmd_vel` 有非零 `TwistStamped`。
+- 松开 L1 后 `/diff_drive_controller/cmd_vel` 变为零速。
+- Square/方块键进入 ESTOP 并通过 `/cmd_vel_lock` 发布 `true`；R1 清除 ESTOP。
+- `deadzone=0.12` 能设置成功，`deadzone=0.9` 被 range 校验拒绝。
+- Create/Options 只发布 `/record_request` 和 `/stop_record_request` 请求；真正调用 rosbag2 远程 service 会在 mission logger 阶段接入。
+
+不想手动按手柄时，可以用下面的可重复合成输入测试 `gamepad_interface`：
+
+```bash
+ros2 launch sentinel_teleop gamepad.launch.py start_joy:=false &
+launch_pid=$!
+sleep 8
+
+ros2 lifecycle get /gamepad_interface
+ros2 param set /gamepad_interface deadzone 0.9 || true
+
+ros2 topic echo /diff_drive_controller/cmd_vel --once &
+echo_pid=$!
+sleep 1
+ros2 topic pub /joy sensor_msgs/msg/Joy --times 5 -r 10 \
+  "{axes: [0.0, -1.0, 0.0, -0.5, 0.0, -1.0, 0.0, 0.0], buttons: [0,0,0,0,1,0,0,0,0,0,0,0,0]}"
+wait "${echo_pid}" || true
+
+ros2 topic echo /diff_drive_controller/cmd_vel --once &
+echo_pid=$!
+sleep 1
+ros2 topic pub /joy sensor_msgs/msg/Joy --times 5 -r 10 \
+  "{axes: [0.0, -1.0, 0.0, -0.5, 0.0, -1.0, 0.0, 0.0], buttons: [0,0,0,0,0,0,0,0,0,0,0,0,0]}"
+wait "${echo_pid}" || true
+
+ros2 topic echo /cmd_vel_lock --once &
+lock_pid=$!
+ros2 topic echo /rover_mode_request --once &
+mode_pid=$!
+sleep 1
+ros2 topic pub /joy sensor_msgs/msg/Joy --times 5 -r 10 \
+  "{axes: [0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0], buttons: [0,0,1,0,0,0,0,0,0,0,0,0,0]}"
+wait "${lock_pid}" || true
+wait "${mode_pid}" || true
+
+kill -INT "${launch_pid}"
+wait "${launch_pid}" || true
+```
+
+当前 `nexus` 实测：L1 合成输入输出 `linear.x=0.45`、`angular.z=0.65`；松开 L1 输出零速；Square 输出 `/cmd_vel_lock: true` 和 `MODE_ESTOP`。
 
 ## Phase 6 - Mission Management
 
