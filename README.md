@@ -4,7 +4,7 @@ Nexus Sentinel is a ROS 2 simulation workspace for a warehouse and campus inspec
 
 ## Current Phase
 
-Phase 1 is complete: the workspace contains the package skeletons for the project architecture. Functional robot interfaces, simulation assets, controllers, teleoperation, mission logic, navigation, perception, and documentation will be implemented in later phases.
+Phase 2 is complete: the workspace contains the package skeletons plus the custom ROS 2 interfaces used for robot modes, waypoints, mode switching, and patrol routes. Simulation assets, controllers, teleoperation, mission logic, navigation, perception, and expanded documentation will be implemented in later phases.
 
 ## Workspace Layout
 
@@ -38,3 +38,23 @@ colcon test-result --verbose
 ```
 
 Phase 1 verification result: 8 packages built successfully; 40 tests ran with 0 errors, 0 failures, and 1 skipped template copyright test.
+
+## Interfaces
+
+`sentinel_interfaces` currently provides:
+
+| Interface | Purpose |
+| --- | --- |
+| `sentinel_interfaces/msg/RoverMode` | Latched-style current mode state for TELEOP, MAPPING, PATROL, and ESTOP |
+| `sentinel_interfaces/msg/Waypoint` | Named route waypoint with pose and dwell duration |
+| `sentinel_interfaces/srv/SetMode` | Request/response API for mode changes |
+| `sentinel_interfaces/action/PatrolRoute` | Patrol route action contract with progress feedback |
+
+Inspect an interface on `nexus`:
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/lyrical/setup.bash
+source install/setup.bash
+ros2 interface show sentinel_interfaces/action/PatrolRoute
+```

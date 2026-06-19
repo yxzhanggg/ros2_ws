@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-06-19 - Phase 2 Custom Interfaces
+
+### Added
+
+- Added `sentinel_interfaces/msg/RoverMode.msg` with TELEOP, MAPPING, PATROL, and ESTOP constants.
+- Added `sentinel_interfaces/msg/Waypoint.msg` with `name`, `geometry_msgs/Pose`, and `dwell_seconds` fields.
+- Added `sentinel_interfaces/srv/SetMode.srv` for mode transition requests and current-mode responses.
+- Added `sentinel_interfaces/action/PatrolRoute.action` for route patrol goals, results, and feedback.
+- Enabled `rosidl_generate_interfaces` for C, C++, Python, and Rust interface generation in Lyrical.
+
+### Changed
+
+- Updated `sentinel_interfaces` package metadata with `rosidl_default_generators`, `rosidl_default_runtime`, and `rosidl_interface_packages` membership.
+- Updated `README.md` and `docs/DEPENDENCIES.md` with the Phase 2 interface baseline.
+
+### Verified
+
+- Ran `ros2 interface show` for `RoverMode`, `Waypoint`, `SetMode`, and `PatrolRoute`; all matched the requested field design.
+- Ran `colcon build`: 8 packages finished successfully.
+- Ran `colcon test` plus `colcon test-result --verbose`: 40 tests, 0 errors, 0 failures, 1 skipped.
+
+### Notes
+
+- `member_of_group` must appear after dependency/test dependency elements in `package.xml` format 3; the order was corrected after xmllint caught the schema violation.
+
 ## 2026-06-19 - Phase 1 Package Skeletons
 
 ### Added

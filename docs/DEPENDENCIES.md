@@ -46,6 +46,8 @@ source /opt/ros/lyrical/setup.bash
 | C++ compiler | `/usr/bin/c++` and `/usr/bin/g++`, GCC 15.2.0, installed by the operator before Phase 1 continued |
 | Phase 1 build check | `colcon build --event-handlers console_direct+` completed: 8 packages finished |
 | Phase 1 test check | `colcon test --event-handlers console_direct+` and `colcon test-result --verbose` completed: 40 tests, 0 errors, 0 failures, 1 skipped |
+| Phase 2 interface check | `ros2 interface show` succeeded for `RoverMode`, `Waypoint`, `SetMode`, and `PatrolRoute` |
+| Phase 2 build/test check | `colcon build` and `colcon test` completed: 8 packages, 40 tests, 0 errors, 0 failures, 1 skipped |
 
 ### Gazebo / gz
 
@@ -129,3 +131,14 @@ No network downloads, package installs, `sudo`, system service changes, udev rul
 | `sentinel_bringup` | `ament_cmake` | Placeholder for top-level launch, parameters, and RViz configuration |
 
 Phase 1 keeps CMake package configuration intentionally lightweight so empty skeleton packages build before later-phase runtime dependencies are fully exercised. Declared dependencies in `package.xml` preserve the intended architecture.
+
+## Phase 2 Interface Baseline
+
+| Interface | Fields / role |
+| --- | --- |
+| `sentinel_interfaces/msg/RoverMode` | `MODE_TELEOP`, `MODE_MAPPING`, `MODE_PATROL`, `MODE_ESTOP`, `mode`, `mode_label`, `stamp` |
+| `sentinel_interfaces/msg/Waypoint` | `name`, `geometry_msgs/Pose pose`, `dwell_seconds` |
+| `sentinel_interfaces/srv/SetMode` | Request: `mode`; response: `success`, `message`, `RoverMode current_mode` |
+| `sentinel_interfaces/action/PatrolRoute` | Goal: waypoints and loop flag; result: success/count/message; feedback: current waypoint, remaining distance, estimated remaining time |
+
+The interface package uses `rosidl_default_generators` and exports `rosidl_default_runtime`. Lyrical generated C, C++, Python, and Rust artifacts during the Phase 2 build.

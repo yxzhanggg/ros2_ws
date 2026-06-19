@@ -1,0 +1,11 @@
+Waypoint[] waypoints
+bool loop_forever
+---
+bool success
+uint32 waypoints_completed
+string message
+---
+uint32 current_index
+string current_waypoint_name
+float32 distance_remaining_m
+builtin_interfaces/Duration estimated_time_remaining
