@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-06-19 - Phase 1 Package Skeletons
+
+### Added
+
+- Created the `src/` workspace tree.
+- Added 8 ROS 2 package skeletons: `sentinel_interfaces`, `sentinel_description`, `sentinel_gazebo`, `sentinel_control`, `sentinel_teleop`, `sentinel_mission`, `sentinel_perception`, and `sentinel_bringup`.
+- Added a Phase 1 `README.md` with current workspace layout and build/test commands.
+- Added placeholder resource/config/launch directories for CMake packages and package-specific scaffold directories for later phases.
+
+### Changed
+
+- Simplified empty `ament_cmake` package skeletons so Phase 1 does not require later-phase runtime dependencies during CMake configure. Runtime dependencies remain declared in `package.xml` and will be activated in CMake as implementation is added.
+- Replaced generated TODO package descriptions with project-specific descriptions.
+
+### Verified
+
+- Confirmed `c++` and `g++` are available after the operator installed the missing compiler toolchain.
+- Ran `colcon build --event-handlers console_direct+`: 8 packages finished successfully.
+- Ran `colcon test --event-handlers console_direct+` followed by `colcon test-result --verbose`: 40 tests, 0 errors, 0 failures, 1 skipped.
+
+### Notes
+
+- Phase 1 intentionally contains skeleton packages only. Custom interfaces start in Phase 2; robot description and simulation assets start in Phase 3.
+
 ## 2026-06-19 - Phase 0 Gazebo Baseline Correction
 
 ### Changed

@@ -43,6 +43,9 @@ source /opt/ros/lyrical/setup.bash
 | Installed package | `colcon 0.20.0-1` plus related `python3-colcon-*` packages |
 | Phase 0 build check | `colcon build` completed in the empty workspace with no packages to build |
 | Phase 0 test check | `colcon test` completed in the empty workspace with no packages to test |
+| C++ compiler | `/usr/bin/c++` and `/usr/bin/g++`, GCC 15.2.0, installed by the operator before Phase 1 continued |
+| Phase 1 build check | `colcon build --event-handlers console_direct+` completed: 8 packages finished |
+| Phase 1 test check | `colcon test --event-handlers console_direct+` and `colcon test-result --verbose` completed: 40 tests, 0 errors, 0 failures, 1 skipped |
 
 ### Gazebo / gz
 
@@ -111,3 +114,18 @@ These items are required for later phases but were not installed or not usable d
 | Nav2, slam_toolbox, twist_mux, controllers, and any remaining navigation packages | Required by architecture and later phases; package availability still needs complete verification before Phase 3+ | Phase 3 onward |
 
 No network downloads, package installs, `sudo`, system service changes, udev rules, or user group changes were executed by Codex during this Phase 0 refresh. A later source refresh showed that the vendored Gazebo stack is already available through `/opt/ros/lyrical/setup.bash`.
+
+## Phase 1 Package Baseline
+
+| Package | Build type | Phase 1 role |
+| --- | --- | --- |
+| `sentinel_interfaces` | `ament_cmake` | Placeholder for custom messages, services, and actions to be implemented in Phase 2 |
+| `sentinel_description` | `ament_cmake` | Placeholder for Xacro, meshes, and RViz assets to be implemented in Phase 3 |
+| `sentinel_gazebo` | `ament_cmake` | Placeholder for Gazebo worlds, models, and launch files to be implemented in Phase 3 |
+| `sentinel_control` | `ament_cmake` | Placeholder for ros2_control YAML and controller launch assets to be implemented in Phase 4 |
+| `sentinel_teleop` | `ament_python` | Placeholder for DualSense teleoperation nodes and parameters to be implemented in Phase 5 |
+| `sentinel_mission` | `ament_cmake` | Placeholder for C++ mission management and later Python logging integration |
+| `sentinel_perception` | `ament_cmake` | Placeholder for composable C++ perception nodes to be implemented in Phase 8 |
+| `sentinel_bringup` | `ament_cmake` | Placeholder for top-level launch, parameters, and RViz configuration |
+
+Phase 1 keeps CMake package configuration intentionally lightweight so empty skeleton packages build before later-phase runtime dependencies are fully exercised. Declared dependencies in `package.xml` preserve the intended architecture.
