@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="nexus_sentinel">
   <xacro:arg name="use_sim" default="true"/>
+  <xacro:arg name="controller_config" default=""/>
 
   <xacro:property name="base_length" value="0.72"/>
   <xacro:property name="base_width" value="0.48"/>
@@ -335,6 +336,18 @@
       <state_interface name="position"/>
       <state_interface name="velocity"/>
     </joint>
+    <sensor name="imu_sensor">
+      <state_interface name="orientation.x"/>
+      <state_interface name="orientation.y"/>
+      <state_interface name="orientation.z"/>
+      <state_interface name="orientation.w"/>
+      <state_interface name="angular_velocity.x"/>
+      <state_interface name="angular_velocity.y"/>
+      <state_interface name="angular_velocity.z"/>
+      <state_interface name="linear_acceleration.x"/>
+      <state_interface name="linear_acceleration.y"/>
+      <state_interface name="linear_acceleration.z"/>
+    </sensor>
   </ros2_control>
 
   <gazebo>
@@ -342,6 +355,7 @@
       <ros>
         <namespace>/</namespace>
       </ros>
+      <parameters>$(arg controller_config)</parameters>
     </plugin>
   </gazebo>
 

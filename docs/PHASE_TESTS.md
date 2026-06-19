@@ -159,18 +159,24 @@ ps -eo pid,ppid,cmd | grep -E 'sentinel_gazebo sim.launch|gz sim|ruby.*gz|parame
 
 ## Phase 4 - ros2_control
 
-状态：待实现。完成后用下面命令验证 controller manager、差速控制器、IMU broadcaster、odom 和 TF。
+状态：工程配置已加入，完整运行验证等待控制器依赖安装。先在 `nexus` 上安装缺失包：
+
+```bash
+sudo apt-get install -y ros-lyrical-ros2controlcli ros-lyrical-joint-state-broadcaster ros-lyrical-diff-drive-controller ros-lyrical-imu-sensor-broadcaster
+```
+
+安装完成后，用下面命令验证 controller manager、差速控制器、IMU broadcaster、odom 和 TF。
 
 ```bash
 cd ~/ros2_ws
 source /opt/ros/lyrical/setup.bash
 source install/setup.bash
 
-ros2 launch sentinel_gazebo sim.launch.py headless:=true &
+ros2 launch sentinel_gazebo sim.launch.py headless:=true spawn_controllers:=true &
 launch_pid=$!
 sleep 10
 
-ros2 control list_controllers
+ros2 control list_controllers || ros2 service list | grep controller_manager
 ros2 topic list | sort | grep -E '^/odom$|^/tf$|^/joint_states$'
 ros2 topic echo /odom --once
 ros2 run tf2_ros tf2_echo odom base_link --once

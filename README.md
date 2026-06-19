@@ -4,7 +4,7 @@ Nexus Sentinel is a ROS 2 simulation workspace for a warehouse and campus inspec
 
 ## Current Phase
 
-Phase 3 is complete: the workspace contains the package skeletons, custom ROS 2 interfaces, a parameterized Nexus Sentinel Xacro model, and a headless Gazebo warehouse simulation with lidar, IMU, and camera topic bridges. Controllers, teleoperation, mission logic, navigation, perception, and expanded documentation will be implemented in later phases.
+Phase 4 is in progress: the workspace contains the package skeletons, custom ROS 2 interfaces, a parameterized Nexus Sentinel Xacro model, a headless Gazebo warehouse simulation with lidar, IMU, and camera topic bridges, and initial ros2_control controller configuration. Full controller activation still requires the Phase 4 controller packages listed in `docs/DEPENDENCIES.md`.
 
 ## Workspace Layout
 
@@ -64,6 +64,27 @@ The Phase 3 launch starts Gazebo server mode, publishes `robot_description`, spa
 | `/clock` | `rosgraph_msgs/msg/Clock` | Gazebo simulation clock |
 
 Phase 3 validation saw `/scan`, `/imu`, `/camera/image`, `/camera/camera_info`, `/joint_states`, `/tf`, and `/tf_static` in `ros2 topic list`.
+
+## Control
+
+Phase 4 adds controller configuration in `sentinel_control`:
+
+| File | Purpose |
+| --- | --- |
+| `src/sentinel_control/config/controllers.yaml` | Controller manager, joint state, differential drive, and IMU broadcaster parameters |
+| `src/sentinel_control/launch/control.launch.py` | Spawns the configured controllers against `/controller_manager` |
+
+Use `spawn_controllers:=true` with the simulation launch after the controller packages are installed:
+
+```bash
+ros2 launch sentinel_gazebo sim.launch.py headless:=true spawn_controllers:=true
+```
+
+The current `nexus` image still needs these packages before full controller activation can be verified:
+
+```bash
+sudo apt-get install -y ros-lyrical-ros2controlcli ros-lyrical-joint-state-broadcaster ros-lyrical-diff-drive-controller ros-lyrical-imu-sensor-broadcaster
+```
 
 ## Interfaces
 

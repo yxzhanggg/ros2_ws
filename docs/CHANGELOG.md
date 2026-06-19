@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-06-19 - Phase 4 ros2_control Configuration
+
+### Added
+
+- Added `sentinel_control/config/controllers.yaml` for controller manager, `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster`.
+- Added `sentinel_control/launch/control.launch.py` to spawn the configured controllers against `/controller_manager`.
+- Extended the robot Xacro with an IMU ros2_control sensor interface and a `gz_ros2_control` parameter-file hook.
+- Added an optional `spawn_controllers` launch argument to `sentinel_gazebo/launch/sim.launch.py`.
+
+### Changed
+
+- Updated `README.md`, `docs/DEPENDENCIES.md`, and `docs/PHASE_TESTS.md` with Phase 4 controller dependency and validation notes.
+
+### Verified
+
+- `xacro` plus `check_urdf` still parse the robot model successfully after adding controller interfaces.
+- `colcon build --packages-select sentinel_description sentinel_control sentinel_gazebo` passed.
+- `colcon test --packages-select sentinel_description sentinel_control sentinel_gazebo` plus `colcon test-result --verbose` passed: 47 tests, 0 errors, 0 failures, 1 skipped.
+- A short simulation launch still initialized `robot_state_publisher`, spawned `nexus_sentinel`, and created the sensor bridges.
+- Full controller activation remains blocked because `joint_state_broadcaster`, `diff_drive_controller`, `imu_sensor_broadcaster`, and `ros2controlcli` are not installed on `nexus`.
+- Attempted the required install command after asking for approval, but `sudo` requires an interactive terminal and did not authenticate in the Codex SSH command.
+
+### Required Operator Action
+
+Run this on `nexus`, then continue Phase 4 verification:
+
+```bash
+sudo apt-get install -y ros-lyrical-ros2controlcli ros-lyrical-joint-state-broadcaster ros-lyrical-diff-drive-controller ros-lyrical-imu-sensor-broadcaster
+```
+
 ## 2026-06-19 - Phase Test Playbook
 
 ### Added

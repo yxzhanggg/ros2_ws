@@ -50,6 +50,8 @@ source /opt/ros/lyrical/setup.bash
 | Phase 2 build/test check | `colcon build` and `colcon test` completed: 8 packages, 40 tests, 0 errors, 0 failures, 1 skipped |
 | Phase 3 description check | `xacro` plus `check_urdf` succeeded for `sentinel_description/urdf/sentinel.urdf.xacro` |
 | Phase 3 simulation package check | `colcon build --packages-select sentinel_description sentinel_gazebo` and matching `colcon test` completed: 46 tests, 0 errors, 0 failures, 1 skipped |
+| Phase 4 controller dependency check | `controller_manager` is installed, but `ros2controlcli`, `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster` are missing |
+| Phase 4 package check | `colcon build --packages-select sentinel_description sentinel_control sentinel_gazebo` and matching `colcon test` completed: 47 tests, 0 errors, 0 failures, 1 skipped |
 
 ### Gazebo / gz
 
@@ -84,6 +86,34 @@ Phase 3 checked the installed Lyrical files under `/opt/ros/lyrical` for the req
 ### ros_gz_bridge Launch Compatibility
 
 The installed `ros_gz_bridge` package provides `ros_gz_bridge.launch.py`, but including it failed in this environment because its `RosGzBridge` action expected `bridge_params` as a list while the launch file passed a `LaunchConfiguration`. Phase 3 therefore starts `ros_gz_bridge`'s `parameter_bridge` executable directly and passes the validated `config_file` parameter.
+
+### Phase 4 Controller Dependencies
+
+The Phase 4 code now contains controller configuration and launch wiring, but the current `nexus` system is missing the controller packages required for runtime activation.
+
+Installed:
+
+```text
+ros-lyrical-controller-manager
+ros-lyrical-controller-interface
+ros-lyrical-controller-manager-msgs
+ros-lyrical-gz-ros2-control
+```
+
+Missing:
+
+```text
+ros-lyrical-ros2controlcli
+ros-lyrical-joint-state-broadcaster
+ros-lyrical-diff-drive-controller
+ros-lyrical-imu-sensor-broadcaster
+```
+
+`apt-cache policy` showed candidates are available from the ROS Lyrical apt repository. Codex attempted the install command after requesting approval, but `sudo` requires an interactive terminal in this SSH session:
+
+```bash
+sudo apt-get install -y ros-lyrical-ros2controlcli ros-lyrical-joint-state-broadcaster ros-lyrical-diff-drive-controller ros-lyrical-imu-sensor-broadcaster
+```
 
 ### Controller / DualSense
 
@@ -188,3 +218,20 @@ source /opt/ros/lyrical/setup.bash
 source install/setup.bash
 ros2 launch sentinel_gazebo sim.launch.py headless:=true
 ```
+
+## Phase 4 Controller Baseline
+
+| Asset | Location | Role |
+| --- | --- | --- |
+| Controller parameters | `src/sentinel_control/config/controllers.yaml` | Defines controller manager update rate, differential-drive wheel geometry, odom/TF publication, and IMU broadcaster parameters |
+| Controller launch | `src/sentinel_control/launch/control.launch.py` | Spawns `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster` |
+| Robot control interfaces | `src/sentinel_description/urdf/sentinel.urdf.xacro` | Declares wheel command/state interfaces and IMU sensor state interfaces for `gz_ros2_control` |
+| Simulation integration | `src/sentinel_gazebo/launch/sim.launch.py` | Includes `sentinel_control` spawners during simulation launch |
+
+Controller spawning is gated behind `spawn_controllers:=true` so the Phase 3 simulation smoke test stays usable while dependencies are missing:
+
+```bash
+ros2 launch sentinel_gazebo sim.launch.py headless:=true spawn_controllers:=true
+```
+
+Full runtime verification remains pending until the missing controller packages are installed.

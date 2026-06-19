@@ -12,6 +12,7 @@
   <depend>ros_gz_sim</depend>
   <depend>ros_gz_bridge</depend>
   <depend>sentinel_description</depend>
+  <depend>sentinel_control</depend>
   <depend>robot_state_publisher</depend>
   <depend>xacro</depend>
 

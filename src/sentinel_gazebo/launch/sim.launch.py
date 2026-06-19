@@ -14,6 +14,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -25,6 +26,7 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration('use_sim_time')
     world_file = LaunchConfiguration('world_file')
     xacro_file = LaunchConfiguration('xacro_file')
+    spawn_controllers = LaunchConfiguration('spawn_controllers')
 
     default_world_file = PathJoinSubstitution(
         [FindPackageShare('sentinel_gazebo'), 'worlds', 'sentinel_warehouse.sdf']
@@ -35,13 +37,28 @@ def generate_launch_description():
     bridge_config = PathJoinSubstitution(
         [FindPackageShare('sentinel_gazebo'), 'config', 'bridge.yaml']
     )
+    control_launch = PathJoinSubstitution(
+        [FindPackageShare('sentinel_control'), 'launch', 'control.launch.py']
+    )
+    controller_config = PathJoinSubstitution(
+        [FindPackageShare('sentinel_control'), 'config', 'controllers.yaml']
+    )
     gz_launch = PathJoinSubstitution(
         [FindPackageShare('ros_gz_sim'), 'launch', 'gz_sim.launch.py']
     )
 
     robot_description = {
         'robot_description': ParameterValue(
-            Command(['xacro ', xacro_file, ' use_sim:=', use_sim_time]),
+            Command(
+                [
+                    'xacro ',
+                    xacro_file,
+                    ' use_sim:=',
+                    use_sim_time,
+                    ' controller_config:=',
+                    controller_config,
+                ]
+            ),
             value_type=str,
         )
     }
@@ -67,6 +84,11 @@ def generate_launch_description():
                 'headless',
                 default_value='true',
                 description='Run Gazebo server only when true.',
+            ),
+            DeclareLaunchArgument(
+                'spawn_controllers',
+                default_value='false',
+                description='Spawn ros2_control controllers during simulation startup.',
             ),
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(gz_launch),
@@ -109,6 +131,10 @@ def generate_launch_description():
                 name='sentinel_gz_bridge',
                 parameters=[{'config_file': bridge_config}],
                 output='screen',
+            ),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(control_launch),
+                condition=IfCondition(spawn_controllers),
             ),
         ]
     )
