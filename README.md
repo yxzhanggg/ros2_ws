@@ -21,7 +21,8 @@ ros2_ws/
 │   └── sentinel_bringup/
 ├── docs/
 │   ├── CHANGELOG.md
-│   └── DEPENDENCIES.md
+│   ├── DEPENDENCIES.md
+│   └── PHASE_TESTS.md
 └── README.md
 ```
 
@@ -38,6 +39,8 @@ colcon test-result --verbose
 ```
 
 Latest Phase 3 verification result: all 8 packages built successfully; 46 tests ran with 0 errors, 0 failures, and 1 skipped template copyright test.
+
+For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-3 smoke tests and future Phase 4-10 acceptance-test templates.
 
 ## Simulation
 

@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-19 - Phase Test Playbook
+
+### Added
+
+- Added `docs/PHASE_TESTS.md` with copyable test commands for Phase 0 through Phase 10.
+- Documented completed Phase 0-3 checks as runnable commands and expected results.
+- Added future Phase 4-10 acceptance-test templates so each upcoming phase has an explicit operator-facing validation target.
+
+### Changed
+
+- Updated `README.md` to link the phase-by-phase test playbook.
+
 ## 2026-06-19 - Phase 3 Robot Description and Gazebo Simulation
 
 ### Added
