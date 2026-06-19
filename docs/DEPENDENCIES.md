@@ -14,7 +14,7 @@ Checked at: 2026-06-19T18:42:44+08:00, refreshed using ordinary `ssh nexus` as r
 | OS | Ubuntu 26.04 LTS (`resolute`) |
 | Kernel | `Linux nexus 7.0.0-22-generic #22-Ubuntu SMP PREEMPT_DYNAMIC Mon May 25 15:54:34 UTC 2026 x86_64 GNU/Linux` |
 | Workspace | `/home/zyx/ros2_ws` |
-| Workspace state | Git repository on branch `main`; currently contains Phase 0 docs only |
+| Workspace state | Git repository on branch `main`; currently contains Phase 0 docs and `.gitignore` |
 | Git | `git version 2.53.0`; global user `yxzhanggg <yxzhanggg@gmail.com>` |
 
 ### ROS 2

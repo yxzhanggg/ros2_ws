@@ -7,12 +7,14 @@
 - Refreshed Phase 0 using ordinary `ssh nexus` as requested.
 - Updated `docs/DEPENDENCIES.md` to reflect the current state: `colcon`, `jstest`, `evtest`, and the connected DualSense joystick devices are now available.
 - Recorded that Gazebo `gz` is still missing.
+- Recorded that `.gitignore` now ignores `build/`, `install/`, `log/`, `.DS_Store`, and editor backup files.
 
 ### Verified
 
 - Confirmed target host `nexus` is Ubuntu 26.04 LTS (`resolute`) with ROS 2 Lyrical installed under `/opt/ros/lyrical`.
 - Confirmed `ros2` works after sourcing `/opt/ros/lyrical/setup.bash`.
 - Confirmed `colcon` is available at `/usr/bin/colcon`.
+- Confirmed `colcon build` and `colcon test` both complete in the empty workspace.
 - Confirmed the DualSense controller is trusted, connected, and exposes `/dev/input/js0` plus `/dev/input/js1`.
 - Confirmed `/dev/input/js0` reports 8 axes and 13 buttons; `/dev/input/js1` reports 6 motion-sensor axes and 0 buttons.
 - Confirmed GPU/display baseline: Intel Iris Xe, no NVIDIA tooling, Wayland local session, no `DISPLAY` in SSH shell.
