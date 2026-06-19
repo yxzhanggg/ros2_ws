@@ -1,6 +1,6 @@
 # Phase Test Playbook
 
-这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-3 已经完成，下面的命令应当可以在 `nexus` 上直接运行；Phase 4-10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时每个模板会根据实际代码继续更新成实测命令。
+这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-4 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 5-10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时每个模板会根据实际代码继续更新成实测命令。
 
 通用准备命令：
 
@@ -159,13 +159,7 @@ ps -eo pid,ppid,cmd | grep -E 'sentinel_gazebo sim.launch|gz sim|ruby.*gz|parame
 
 ## Phase 4 - ros2_control
 
-状态：工程配置已加入，完整运行验证等待控制器依赖安装。先在 `nexus` 上安装缺失包：
-
-```bash
-sudo apt-get install -y ros-lyrical-ros2controlcli ros-lyrical-joint-state-broadcaster ros-lyrical-diff-drive-controller ros-lyrical-imu-sensor-broadcaster
-```
-
-安装完成后，用下面命令验证 controller manager、差速控制器、IMU broadcaster、odom 和 TF。
+目标：验证 controller manager、joint state broadcaster、差速控制器、IMU broadcaster、odom、TF 和差速控制链路。Lyrical 当前 `diff_drive_controller` 使用 namespaced `TwistStamped` 输入：`/diff_drive_controller/cmd_vel`。
 
 ```bash
 cd ~/ros2_ws
@@ -174,18 +168,18 @@ source install/setup.bash
 
 ros2 launch sentinel_gazebo sim.launch.py headless:=true spawn_controllers:=true &
 launch_pid=$!
-sleep 10
+sleep 12
 
 ros2 control list_controllers || ros2 service list | grep controller_manager
-ros2 topic list | sort | grep -E '^/odom$|^/tf$|^/joint_states$'
-ros2 topic echo /odom --once
-ros2 run tf2_ros tf2_echo odom base_link --once
+ros2 topic list -t | sort | grep -E 'diff_drive_controller/(cmd_vel|odom)|imu_sensor_broadcaster/imu|^/imu|^/tf|^/joint_states'
+ros2 topic echo /diff_drive_controller/odom --once
+timeout 5s ros2 run tf2_ros tf2_echo odom base_footprint -r 1
 
-ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist \
-  "{linear: {x: 0.2, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
+ros2 topic pub --once /diff_drive_controller/cmd_vel geometry_msgs/msg/TwistStamped \
+  "{header: {frame_id: base_footprint}, twist: {linear: {x: 0.2, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.3}}}"
 
 sleep 2
-ros2 topic echo /odom --once
+ros2 topic echo /diff_drive_controller/odom --once
 
 kill -INT "${launch_pid}"
 wait "${launch_pid}" || true
@@ -194,9 +188,10 @@ wait "${launch_pid}" || true
 期望结果：
 
 - `joint_state_broadcaster`、`diff_drive_controller`、`imu_sensor_broadcaster` 是 `active`
-- `/odom` 持续发布
-- `odom -> base_link` TF 可查询
-- 发布 `/cmd_vel` 后 `/odom` 位姿或速度发生变化
+- `/diff_drive_controller/odom` 持续发布
+- `odom -> base_footprint` TF 可查询
+- 发布 `/diff_drive_controller/cmd_vel` 后 `/diff_drive_controller/odom` 位姿发生变化
+- `/imu_sensor_broadcaster/imu` 和 Gazebo bridge 的 `/imu` 都发布 `sensor_msgs/msg/Imu`
 
 ## Phase 5 - DualSense Teleoperation
 

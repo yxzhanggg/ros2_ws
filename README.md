@@ -4,7 +4,7 @@ Nexus Sentinel is a ROS 2 simulation workspace for a warehouse and campus inspec
 
 ## Current Phase
 
-Phase 4 is in progress: the workspace contains the package skeletons, custom ROS 2 interfaces, a parameterized Nexus Sentinel Xacro model, a headless Gazebo warehouse simulation with lidar, IMU, and camera topic bridges, and initial ros2_control controller configuration. Full controller activation still requires the Phase 4 controller packages listed in `docs/DEPENDENCIES.md`.
+Phase 4 is complete for the control baseline: the workspace contains the package skeletons, custom ROS 2 interfaces, a parameterized Nexus Sentinel Xacro model, a headless Gazebo warehouse simulation with lidar, IMU, and camera topic bridges, and validated ros2_control joint-state, differential-drive, and IMU broadcaster startup.
 
 ## Workspace Layout
 
@@ -38,7 +38,7 @@ colcon test
 colcon test-result --verbose
 ```
 
-Latest Phase 3 verification result: all 8 packages built successfully; 46 tests ran with 0 errors, 0 failures, and 1 skipped template copyright test.
+Latest Phase 4 verification result: selected control/simulation packages built successfully; controller manager loaded `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster`; `/diff_drive_controller/odom`, `/diff_drive_controller/cmd_vel`, `/imu_sensor_broadcaster/imu`, `/joint_states`, and TF were available during a clean headless simulation run.
 
 For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-3 smoke tests and future Phase 4-10 acceptance-test templates.
 
@@ -72,19 +72,15 @@ Phase 4 adds controller configuration in `sentinel_control`:
 | File | Purpose |
 | --- | --- |
 | `src/sentinel_control/config/controllers.yaml` | Controller manager, joint state, differential drive, and IMU broadcaster parameters |
-| `src/sentinel_control/launch/control.launch.py` | Spawns the configured controllers against `/controller_manager` |
+| `src/sentinel_control/launch/control.launch.py` | Spawns the validated controllers against `/controller_manager` |
 
-Use `spawn_controllers:=true` with the simulation launch after the controller packages are installed:
+Use `spawn_controllers:=true` with the simulation launch:
 
 ```bash
 ros2 launch sentinel_gazebo sim.launch.py headless:=true spawn_controllers:=true
 ```
 
-The current `nexus` image still needs these packages before full controller activation can be verified:
-
-```bash
-sudo apt-get install -y ros-lyrical-ros2controlcli ros-lyrical-joint-state-broadcaster ros-lyrical-diff-drive-controller ros-lyrical-imu-sensor-broadcaster
-```
+Expected active controllers are `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster`. In Lyrical, the differential-drive command and odometry topics are namespaced as `/diff_drive_controller/cmd_vel` and `/diff_drive_controller/odom`; the IMU broadcaster publishes `/imu_sensor_broadcaster/imu`, while the Gazebo bridge also publishes `/imu`.
 
 ## Interfaces
 

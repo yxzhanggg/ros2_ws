@@ -5,7 +5,7 @@
 ### Added
 
 - Added `sentinel_control/config/controllers.yaml` for controller manager, `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster`.
-- Added `sentinel_control/launch/control.launch.py` to spawn the configured controllers against `/controller_manager`.
+- Added `sentinel_control/launch/control.launch.py` to spawn the validated controllers against `/controller_manager`, with launch switches for wheel controllers and the IMU broadcaster.
 - Extended the robot Xacro with an IMU ros2_control sensor interface and a `gz_ros2_control` parameter-file hook.
 - Added an optional `spawn_controllers` launch argument to `sentinel_gazebo/launch/sim.launch.py`.
 
@@ -18,17 +18,13 @@
 - `xacro` plus `check_urdf` still parse the robot model successfully after adding controller interfaces.
 - `colcon build --packages-select sentinel_description sentinel_control sentinel_gazebo` passed.
 - `colcon test --packages-select sentinel_description sentinel_control sentinel_gazebo` plus `colcon test-result --verbose` passed: 47 tests, 0 errors, 0 failures, 1 skipped.
-- A short simulation launch still initialized `robot_state_publisher`, spawned `nexus_sentinel`, and created the sensor bridges.
-- Full controller activation remains blocked because `joint_state_broadcaster`, `diff_drive_controller`, `imu_sensor_broadcaster`, and `ros2controlcli` are not installed on `nexus`.
-- Attempted the required install command after asking for approval, but `sudo` requires an interactive terminal and did not authenticate in the Codex SSH command.
-
-### Required Operator Action
-
-Run this on `nexus`, then continue Phase 4 verification:
-
-```bash
-sudo apt-get install -y ros-lyrical-ros2controlcli ros-lyrical-joint-state-broadcaster ros-lyrical-diff-drive-controller ros-lyrical-imu-sensor-broadcaster
-```
+- A clean simulation launch initialized `robot_state_publisher`, spawned `nexus_sentinel`, created the sensor bridges, and started the ros2_control controller manager.
+- `joint_state_broadcaster` loaded, configured, and activated.
+- `diff_drive_controller` loaded, configured, and activated.
+- `imu_sensor_broadcaster` loaded, configured, and activated after aligning the ros2_control sensor name with Gazebo's `base_imu` sensor.
+- `ros2 control list_hardware_interfaces --verbose` exposes the wheel velocity command interfaces, wheel position/velocity state interfaces, and `base_imu` orientation, angular velocity, and linear acceleration state interfaces.
+- `/diff_drive_controller/odom`, `/diff_drive_controller/cmd_vel`, `/imu_sensor_broadcaster/imu`, `/joint_states`, `/tf`, and bridged `/imu` are available during the Phase 4 simulation run.
+- Publishing a `geometry_msgs/msg/TwistStamped` command to `/diff_drive_controller/cmd_vel` changed odometry from near zero to approximately `x=0.099`, `y=0.009`, `yaw=8.6 deg`, and `tf2_echo odom base_footprint` reported the same transform.
 
 ## 2026-06-19 - Phase Test Playbook
 

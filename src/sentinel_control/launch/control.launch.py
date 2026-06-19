@@ -14,6 +14,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -22,6 +23,8 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     controller_manager = LaunchConfiguration('controller_manager')
     controller_config = LaunchConfiguration('controller_config')
+    spawn_wheel_controllers = LaunchConfiguration('spawn_wheel_controllers')
+    spawn_imu_broadcaster = LaunchConfiguration('spawn_imu_broadcaster')
 
     default_controller_config = PathJoinSubstitution(
         [FindPackageShare('sentinel_control'), 'config', 'controllers.yaml']
@@ -39,6 +42,16 @@ def generate_launch_description():
                 default_value=default_controller_config,
                 description='ros2_control controller parameter file.',
             ),
+            DeclareLaunchArgument(
+                'spawn_wheel_controllers',
+                default_value='true',
+                description='Spawn joint_state_broadcaster and diff_drive_controller.',
+            ),
+            DeclareLaunchArgument(
+                'spawn_imu_broadcaster',
+                default_value='true',
+                description='Spawn imu_sensor_broadcaster.',
+            ),
             Node(
                 package='controller_manager',
                 executable='spawner',
@@ -49,6 +62,7 @@ def generate_launch_description():
                     '--param-file',
                     controller_config,
                 ],
+                condition=IfCondition(spawn_wheel_controllers),
                 output='screen',
             ),
             Node(
@@ -61,6 +75,7 @@ def generate_launch_description():
                     '--param-file',
                     controller_config,
                 ],
+                condition=IfCondition(spawn_wheel_controllers),
                 output='screen',
             ),
             Node(
@@ -73,6 +88,7 @@ def generate_launch_description():
                     '--param-file',
                     controller_config,
                 ],
+                condition=IfCondition(spawn_imu_broadcaster),
                 output='screen',
             ),
         ]

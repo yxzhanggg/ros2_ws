@@ -336,7 +336,7 @@
       <state_interface name="position"/>
       <state_interface name="velocity"/>
     </joint>
-    <sensor name="imu_sensor">
+    <sensor name="base_imu">
       <state_interface name="orientation.x"/>
       <state_interface name="orientation.y"/>
       <state_interface name="orientation.z"/>
