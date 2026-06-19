@@ -4,7 +4,7 @@ This document records the real environment observed during Phase 0. It is intent
 
 ## Phase 0 Environment Baseline
 
-Checked at: 2026-06-19T18:32:20+08:00
+Checked at: 2026-06-19T18:42:44+08:00, refreshed using ordinary `ssh nexus` as requested.
 
 ### Host
 
@@ -14,7 +14,7 @@ Checked at: 2026-06-19T18:32:20+08:00
 | OS | Ubuntu 26.04 LTS (`resolute`) |
 | Kernel | `Linux nexus 7.0.0-22-generic #22-Ubuntu SMP PREEMPT_DYNAMIC Mon May 25 15:54:34 UTC 2026 x86_64 GNU/Linux` |
 | Workspace | `/home/zyx/ros2_ws` |
-| Workspace initial state | Existing directory, empty before Phase 0 documentation, no git repository |
+| Workspace state | Git repository on branch `main`; currently contains Phase 0 docs only |
 | Git | `git version 2.53.0`; global user `yxzhanggg <yxzhanggg@gmail.com>` |
 
 ### ROS 2
@@ -28,7 +28,6 @@ Checked at: 2026-06-19T18:32:20+08:00
 | Installed ROS CLI package | `ros-lyrical-ros2cli 0.40.7-1resolute.20260606.033717` |
 | RMW observed by `ros2 doctor --report` | `rmw_fastrtps_cpp` |
 | Discovery range | `ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET` |
-| `ros2 doctor --report` warnings | `PackageReport` and `RosdistroReport` functions failed; endpoint lists were empty because no ROS graph was running |
 
 Command pattern required for later phases:
 
@@ -40,8 +39,10 @@ source /opt/ros/lyrical/setup.bash
 
 | Tool | Observed value |
 | --- | --- |
-| `colcon` | Not found in `PATH`, even after sourcing `/opt/ros/lyrical/setup.bash` |
-| Result | Phase 1+ builds cannot run until colcon is installed or otherwise made available |
+| `colcon` | `/usr/bin/colcon` |
+| Installed package | `colcon 0.20.0-1` plus related `python3-colcon-*` packages |
+| Phase 0 build check | `colcon build` completed in the empty workspace with no packages to build |
+| Phase 0 test check | `colcon test` completed in the empty workspace with no packages to test |
 
 ### Gazebo / gz
 
@@ -57,28 +58,28 @@ source /opt/ros/lyrical/setup.bash
 | Item | Observed value |
 | --- | --- |
 | Bluetooth device | `AC:36:1B:17:37:A3 DualSense Wireless Controller` |
-| Pairing state | Paired: yes; Bonded: yes; Trusted: no; Blocked: no; Connected: no |
-| `/dev/input/js*` | No joystick devices found |
+| Pairing state | Paired: yes; Bonded: yes; Trusted: yes; Blocked: no; Connected: yes |
+| Joystick devices | `/dev/input/js0`, `/dev/input/js1` |
+| `/dev/input/js0` | `DualSense Wireless Controller`, 8 axes and 13 buttons via `jstest --normal` |
+| `/dev/input/js1` | `DualSense Wireless Controller Motion Sensors`, 6 axes and 0 buttons via `jstest --normal` |
 | `/dev/input/by-id` | Not present during the check |
-| `/dev/input/event*` | Event devices exist and are owned by `root:input`, but no DualSense js device was exposed because the controller was not connected |
-| `jstest` / `evtest` | Not found |
+| `jstest` / `evtest` | `/usr/bin/jstest`, `/usr/bin/evtest` |
 | Installed ROS joystick package | `ros-lyrical-joy 3.3.0-4resolute.20260606.031052` is installed |
 | Additional teleop package | `ros-lyrical-teleop-twist-joy 2.6.5-3resolute.20260606.031807` is installed, but the project will still implement its own `gamepad_interface` node as required |
 
-System-level follow-up commands that require explicit approval before execution:
+DualSense default axis/button snapshot from `/dev/input/js0`:
 
-```bash
-sudo apt install joystick evtest
+```text
+Joystick (DualSense Wireless Controller) has 8 axes (X, Y, Z, Rx, Ry, Rz, Hat0X, Hat0Y)
+and 13 buttons (BtnA, BtnB, BtnX, BtnY, BtnTL, BtnTR, BtnTL2, BtnTR2, BtnSelect, BtnStart, BtnMode, BtnThumbL, BtnThumbR).
 ```
 
-Potential controller follow-up, also user-session sensitive and not executed in Phase 0:
+Motion sensor snapshot from `/dev/input/js1`:
 
-```bash
-bluetoothctl trust AC:36:1B:17:37:A3
-bluetoothctl connect AC:36:1B:17:37:A3
+```text
+Joystick (DualSense Wireless Controller Motion Sensors) has 6 axes (X, Y, Z, Rx, Ry, Rz)
+and 0 buttons ().
 ```
-
-If joystick access fails after the controller is connected, input-group or udev changes may be needed. Those are explicitly outside the allowed autonomous scope and require prior approval.
 
 ### GPU and Display
 
@@ -93,13 +94,13 @@ If joystick access fails after the controller is connected, input-group or udev 
 
 ### Network and SSH Notes
 
-The Codex app is running on macOS, but the target ROS machine is reachable via SSH as `nexus`. Plain SSH sometimes tried IPv6 and failed with `Undefined error: 0`; forcing IPv4 was reliable during Phase 0:
+The Codex app is running on macOS, but the target ROS machine is reachable with the configured command:
 
 ```bash
-ssh -o AddressFamily=inet nexus hostname
+ssh nexus hostname
 ```
 
-Later remote commands should use the same option unless DNS/IPv6 behavior is fixed.
+Ordinary `ssh nexus` succeeded during the Phase 0 refresh and should be used by default. A few rapid concurrent SSH commands still showed transient local `nexus.local` resolution failures; retrying the same `ssh nexus` command succeeded.
 
 ## Missing Dependencies Identified in Phase 0
 
@@ -107,11 +108,8 @@ These items are required for later phases but were not installed or not usable d
 
 | Dependency | Why it is needed | Phase affected |
 | --- | --- | --- |
-| `colcon` / `python3-colcon-common-extensions` | Build and test ROS 2 workspaces | Phase 1 onward |
 | Gazebo `gz` simulator | Run `gz sim` and spawn the robot | Phase 3 onward |
 | `gz_ros2_control` and related simulation integration | Connect Gazebo to `ros2_control` | Phase 3/4 |
-| `joystick` / `evtest` | Verify DualSense axes/buttons from `/dev/input` | Phase 0/5 |
-| Connected DualSense input device | Required for actual teleop validation | Phase 5 |
-| Nav2, slam_toolbox, twist_mux, controllers, RViz packages | Required by architecture and later phases; package availability still needs complete verification after tooling is fixed | Phase 3 onward |
+| Nav2, slam_toolbox, twist_mux, controllers, and additional simulation packages | Required by architecture and later phases; package availability still needs complete verification before Phase 3+ | Phase 3 onward |
 
-No network downloads, package installs, `sudo`, system service changes, udev rules, or user group changes were executed during Phase 0.
+No network downloads, package installs, `sudo`, system service changes, udev rules, or user group changes were executed by Codex during this Phase 0 refresh.
