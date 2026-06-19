@@ -48,10 +48,10 @@ source /opt/ros/lyrical/setup.bash
 
 | Item | Observed value |
 | --- | --- |
-| `gz` executable | Not found |
-| `gz sim --version` | Could not run because `gz` is not installed or not on `PATH` |
-| Installed gz-related packages | Only vendor packages were found: `ros-lyrical-gz-cmake-vendor`, `ros-lyrical-gz-math-vendor`, `ros-lyrical-gz-utils-vendor` |
-| Result | Gazebo simulation phases are blocked until the simulator and ROS integration packages are installed |
+| `gz` executable | `/opt/ros/lyrical/opt/gz_tools_vendor/bin/gz` after sourcing `/opt/ros/lyrical/setup.bash` |
+| `gz sim --version` | `10.1.1` |
+| Installed gz-related packages | Full ROS gz vendor stack is present, including `ros-lyrical-gz-sim-vendor`, `ros-lyrical-gz-tools-vendor`, `ros-lyrical-ros-gz`, `ros-lyrical-ros-gz-sim`, and `ros-lyrical-gz-ros2-control` |
+| Result | Gazebo is available after sourcing the ROS environment; later simulation phases can use the vendored gz stack |
 
 ### Controller / DualSense
 
@@ -108,8 +108,6 @@ These items are required for later phases but were not installed or not usable d
 
 | Dependency | Why it is needed | Phase affected |
 | --- | --- | --- |
-| Gazebo `gz` simulator | Run `gz sim` and spawn the robot | Phase 3 onward |
-| `gz_ros2_control` and related simulation integration | Connect Gazebo to `ros2_control` | Phase 3/4 |
-| Nav2, slam_toolbox, twist_mux, controllers, and additional simulation packages | Required by architecture and later phases; package availability still needs complete verification before Phase 3+ | Phase 3 onward |
+| Nav2, slam_toolbox, twist_mux, controllers, and any remaining navigation packages | Required by architecture and later phases; package availability still needs complete verification before Phase 3+ | Phase 3 onward |
 
-No network downloads, package installs, `sudo`, system service changes, udev rules, or user group changes were executed by Codex during this Phase 0 refresh.
+No network downloads, package installs, `sudo`, system service changes, udev rules, or user group changes were executed by Codex during this Phase 0 refresh. A later source refresh showed that the vendored Gazebo stack is already available through `/opt/ros/lyrical/setup.bash`.

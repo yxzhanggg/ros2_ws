@@ -1,12 +1,24 @@
 # Changelog
 
+## 2026-06-19 - Phase 0 Gazebo Baseline Correction
+
+### Changed
+
+- Re-sourced `/opt/ros/lyrical/setup.bash` and confirmed `gz` is available from the ROS vendored toolchain.
+- Updated `docs/DEPENDENCIES.md` to record `gz sim --version` as `10.1.1` and `ros-lyrical-gz-ros2-control` as installed.
+
+### Verified
+
+- `command -v gz` returns `/opt/ros/lyrical/opt/gz_tools_vendor/bin/gz`.
+- `gz sim --version` returns `10.1.1`.
+
 ## 2026-06-19 - Phase 0 Environment Baseline Refresh
 
 ### Changed
 
 - Refreshed Phase 0 using ordinary `ssh nexus` as requested.
 - Updated `docs/DEPENDENCIES.md` to reflect the current state: `colcon`, `jstest`, `evtest`, and the connected DualSense joystick devices are now available.
-- Recorded that Gazebo `gz` is still missing.
+- Corrected Gazebo baseline: `gz` is available after sourcing `/opt/ros/lyrical/setup.bash`, and `gz sim --version` reports `10.1.1`.
 - Recorded that `.gitignore` now ignores `build/`, `install/`, `log/`, `.DS_Store`, and editor backup files.
 
 ### Verified
@@ -21,7 +33,7 @@
 
 ### Blocked / Missing
 
-- Gazebo `gz` is not installed or not on `PATH`, so simulator version checks and later simulation phases are blocked.
+- Gazebo is no longer considered blocked for Phase 0; later phases still need package-specific launch/integration validation.
 
 ## 2026-06-19 - Phase 0 Environment Baseline
 
@@ -41,5 +53,5 @@
 ### Blocked / Missing
 
 - `colcon` was not found during the first pass, but is now available after the Phase 0 refresh.
-- Gazebo `gz` is not installed or not on `PATH`, so simulator version checks and later simulation phases are blocked.
+- Gazebo is no longer considered blocked for Phase 0; later phases still need package-specific launch/integration validation.
 - `jstest` and `evtest` were missing during the first pass, but are now available after the Phase 0 refresh.
