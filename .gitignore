@@ -1,0 +1,9 @@
+# Colcon build artifacts
+build/
+install/
+log/
+
+# OS/editor noise
+.DS_Store
+*.swp
+*~
