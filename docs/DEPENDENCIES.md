@@ -48,6 +48,8 @@ source /opt/ros/lyrical/setup.bash
 | Phase 1 test check | `colcon test --event-handlers console_direct+` and `colcon test-result --verbose` completed: 40 tests, 0 errors, 0 failures, 1 skipped |
 | Phase 2 interface check | `ros2 interface show` succeeded for `RoverMode`, `Waypoint`, `SetMode`, and `PatrolRoute` |
 | Phase 2 build/test check | `colcon build` and `colcon test` completed: 8 packages, 40 tests, 0 errors, 0 failures, 1 skipped |
+| Phase 3 description check | `xacro` plus `check_urdf` succeeded for `sentinel_description/urdf/sentinel.urdf.xacro` |
+| Phase 3 simulation package check | `colcon build --packages-select sentinel_description sentinel_gazebo` and matching `colcon test` completed: 46 tests, 0 errors, 0 failures, 1 skipped |
 
 ### Gazebo / gz
 
@@ -56,7 +58,32 @@ source /opt/ros/lyrical/setup.bash
 | `gz` executable | `/opt/ros/lyrical/opt/gz_tools_vendor/bin/gz` after sourcing `/opt/ros/lyrical/setup.bash` |
 | `gz sim --version` | `10.1.1` |
 | Installed gz-related packages | Full ROS gz vendor stack is present, including `ros-lyrical-gz-sim-vendor`, `ros-lyrical-gz-tools-vendor`, `ros-lyrical-ros-gz`, `ros-lyrical-ros-gz-sim`, and `ros-lyrical-gz-ros2-control` |
-| Result | Gazebo is available after sourcing the ROS environment; later simulation phases can use the vendored gz stack |
+| Phase 3 launch result | `ros2 launch sentinel_gazebo sim.launch.py headless:=true` started Gazebo server mode, initialized `robot_state_publisher`, spawned `nexus_sentinel`, and created bridges for `/clock`, `/scan`, `/imu`, `/camera/image`, and `/camera/camera_info` |
+| Result | Gazebo is available after sourcing the ROS environment; Phase 3 simulation launch is functional in headless SSH mode |
+
+Phase 3 observed ROS topics during a clean headless simulation launch:
+
+```text
+/camera/camera_info
+/camera/image
+/clock
+/imu
+/joint_states
+/parameter_events
+/robot_description
+/rosout
+/scan
+/tf
+/tf_static
+```
+
+### URDF 1.2 Compatibility Check
+
+Phase 3 checked the installed Lyrical files under `/opt/ros/lyrical` for the requested URDF 1.2 features. No confirmed parser support for `quat_xyzw` joint origins or `capsule` collision geometry was found in the installed headers/share files. To keep the Definition of Done runnable, the robot description uses standard URDF `rpy` origins and primitive box/cylinder/sphere fallback collision geometry. The current sensor mounts are zero-rotation joints, equivalent to `quat_xyzw="0 0 0 1"` semantically, but the file does not emit unsupported XML attributes.
+
+### ros_gz_bridge Launch Compatibility
+
+The installed `ros_gz_bridge` package provides `ros_gz_bridge.launch.py`, but including it failed in this environment because its `RosGzBridge` action expected `bridge_params` as a list while the launch file passed a `LaunchConfiguration`. Phase 3 therefore starts `ros_gz_bridge`'s `parameter_bridge` executable directly and passes the validated `config_file` parameter.
 
 ### Controller / DualSense
 
@@ -142,3 +169,22 @@ Phase 1 keeps CMake package configuration intentionally lightweight so empty ske
 | `sentinel_interfaces/action/PatrolRoute` | Goal: waypoints and loop flag; result: success/count/message; feedback: current waypoint, remaining distance, estimated remaining time |
 
 The interface package uses `rosidl_default_generators` and exports `rosidl_default_runtime`. Lyrical generated C, C++, Python, and Rust artifacts during the Phase 2 build.
+
+## Phase 3 Simulation Baseline
+
+| Asset | Location | Role |
+| --- | --- | --- |
+| Xacro model | `src/sentinel_description/urdf/sentinel.urdf.xacro` | Differential-drive base, wheels, casters, sensor mounts, sensor plugins, and `gz_ros2_control` declaration |
+| Description launch | `src/sentinel_description/launch/description.launch.py` | Publishes `robot_description` through `robot_state_publisher` |
+| Gazebo world | `src/sentinel_gazebo/worlds/sentinel_warehouse.sdf` | Headless warehouse/campus world with walls, racks, dock, and obstacle geometry |
+| Simulation launch | `src/sentinel_gazebo/launch/sim.launch.py` | Starts Gazebo server mode, publishes robot state, spawns `nexus_sentinel`, and starts topic bridging |
+| Bridge config | `src/sentinel_gazebo/config/bridge.yaml` | Bridges `/clock`, `/scan`, `/imu`, `/camera/image`, and `/camera/camera_info` from Gazebo to ROS 2 |
+
+Run Phase 3 simulation on `nexus`:
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/lyrical/setup.bash
+source install/setup.bash
+ros2 launch sentinel_gazebo sim.launch.py headless:=true
+```

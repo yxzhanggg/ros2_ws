@@ -4,7 +4,7 @@ Nexus Sentinel is a ROS 2 simulation workspace for a warehouse and campus inspec
 
 ## Current Phase
 
-Phase 2 is complete: the workspace contains the package skeletons plus the custom ROS 2 interfaces used for robot modes, waypoints, mode switching, and patrol routes. Simulation assets, controllers, teleoperation, mission logic, navigation, perception, and expanded documentation will be implemented in later phases.
+Phase 3 is complete: the workspace contains the package skeletons, custom ROS 2 interfaces, a parameterized Nexus Sentinel Xacro model, and a headless Gazebo warehouse simulation with lidar, IMU, and camera topic bridges. Controllers, teleoperation, mission logic, navigation, perception, and expanded documentation will be implemented in later phases.
 
 ## Workspace Layout
 
@@ -37,7 +37,30 @@ colcon test
 colcon test-result --verbose
 ```
 
-Phase 1 verification result: 8 packages built successfully; 40 tests ran with 0 errors, 0 failures, and 1 skipped template copyright test.
+Latest Phase 3 verification result: all 8 packages built successfully; 46 tests ran with 0 errors, 0 failures, and 1 skipped template copyright test.
+
+## Simulation
+
+Launch the headless Gazebo simulation on `nexus`:
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/lyrical/setup.bash
+source install/setup.bash
+ros2 launch sentinel_gazebo sim.launch.py headless:=true
+```
+
+The Phase 3 launch starts Gazebo server mode, publishes `robot_description`, spawns `nexus_sentinel`, and bridges these sensor topics into ROS 2:
+
+| Topic | Type | Source |
+| --- | --- | --- |
+| `/scan` | `sensor_msgs/msg/LaserScan` | Front 2D lidar |
+| `/imu` | `sensor_msgs/msg/Imu` | Base IMU |
+| `/camera/image` | `sensor_msgs/msg/Image` | Front camera |
+| `/camera/camera_info` | `sensor_msgs/msg/CameraInfo` | Front camera info |
+| `/clock` | `rosgraph_msgs/msg/Clock` | Gazebo simulation clock |
+
+Phase 3 validation saw `/scan`, `/imu`, `/camera/image`, `/camera/camera_info`, `/joint_states`, `/tf`, and `/tf_static` in `ros2 topic list`.
 
 ## Interfaces
 

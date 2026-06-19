@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-06-19 - Phase 3 Robot Description and Gazebo Simulation
+
+### Added
+
+- Added `sentinel_description/urdf/sentinel.urdf.xacro` with a parameterized differential-drive inspection robot, drive wheels, casters, lidar, camera, IMU, static sensor frames, and a `gz_ros2_control` system declaration.
+- Added `sentinel_description/launch/description.launch.py` for publishing `robot_description` with `robot_state_publisher`.
+- Added `sentinel_gazebo/worlds/sentinel_warehouse.sdf`, a simple warehouse/campus inspection world with walls, racks, a charging dock, and obstacles for later Nav2 work.
+- Added `sentinel_gazebo/launch/sim.launch.py` to run Gazebo headless, spawn `nexus_sentinel`, and start ROS/Gazebo topic bridging.
+- Added `sentinel_gazebo/config/bridge.yaml` for `/clock`, `/scan`, `/imu`, `/camera/image`, and `/camera/camera_info`.
+
+### Changed
+
+- Updated `sentinel_gazebo/package.xml` with `robot_state_publisher` and `xacro` runtime dependencies.
+- Updated `README.md` and `docs/DEPENDENCIES.md` with Phase 3 simulation commands, observed topics, and URDF 1.2 compatibility notes.
+
+### Verified
+
+- Ran `xacro` and `check_urdf` on `sentinel.urdf.xacro`; the model parsed successfully with root link `base_footprint`.
+- Ran `colcon build --packages-select sentinel_description sentinel_gazebo`: both packages finished successfully.
+- Ran `colcon test --packages-select sentinel_description sentinel_gazebo` plus `colcon test-result --verbose`: 46 tests, 0 errors, 0 failures, 1 skipped.
+- Ran a clean headless simulation launch and confirmed `create` reported `Entity creation successful`.
+- Confirmed `ros2 topic list` included `/scan`, `/imu`, `/camera/image`, `/camera/camera_info`, `/joint_states`, `/tf`, and `/tf_static`.
+
+### Notes
+
+- The local Lyrical URDF parser did not expose confirmed `quat_xyzw` or `capsule` parsing support under `/opt/ros/lyrical`; Phase 3 therefore uses standard URDF `rpy` origins and primitive fallback collision geometry so the simulation remains runnable. The compatibility finding is recorded in `docs/DEPENDENCIES.md`.
+- The installed `ros_gz_bridge` launch action rejected its own default `bridge_params` type in this environment, so `sim.launch.py` starts `parameter_bridge` directly with the validated YAML config file.
+
 ## 2026-06-19 - Phase 2 Custom Interfaces
 
 ### Added
