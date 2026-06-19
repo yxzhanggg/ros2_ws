@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-06-20 - Phase 6 Mission Management Baseline
+
+### Added
+
+- Added `sentinel_mission::ModeManager`, a C++ lifecycle node that publishes `/rover_mode` with transient-local QoS.
+- Added `/set_mode` service handling and `/rover_mode_request` subscription so Phase 5 teleop mode requests can update the shared mode state.
+- Added `/patrol_route` action server for `sentinel_interfaces/action/PatrolRoute`.
+- Added `mission_logger`, a Python logger node that writes `/rover_mode`, `/record_request`, and `/stop_record_request` events to JSONL.
+- Added `sentinel_mission/launch/mission.launch.py` and `sentinel_bringup/launch/mission.launch.py`.
+
+### Changed
+
+- Updated README, `docs/PHASE_TESTS.md`, and `docs/DEPENDENCIES.md` with Phase 6 launch, test, runtime, and Lyrical API notes.
+- Documented that Nav2 packages are not installed on the current `nexus` image, so Phase 6 patrol execution uses a mission-manager simulation loop and the real Nav2 handoff is deferred to Phase 7.
+
+### Verified
+
+- `colcon build --packages-select sentinel_mission sentinel_bringup --event-handlers console_direct+` passed.
+- `colcon test --packages-select sentinel_mission sentinel_bringup --event-handlers console_direct+` plus `colcon test-result --verbose` passed: 75 tests, 0 errors, 0 failures, 4 skipped.
+- `ros2 launch sentinel_bringup mission.launch.py` brought `/mode_manager` to lifecycle state `active`.
+- `/rover_mode` published the current mode with transient-local behavior; a late `ros2 topic echo /rover_mode --once` received the current state.
+- `/set_mode` accepted `mode: 1` and published `MAPPING`.
+- `/patrol_route` accepted a one-waypoint route, published feedback for `dock`, and returned `SUCCEEDED` with `waypoints_completed: 1`.
+- `log/mission_events.jsonl` recorded `MAPPING -> PATROL -> TELEOP`.
+
 ## 2026-06-19 - Phase 5 DualSense Teleoperation Baseline
 
 ### Added

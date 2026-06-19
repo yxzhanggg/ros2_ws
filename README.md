@@ -4,7 +4,7 @@ Nexus Sentinel is a ROS 2 simulation workspace for a warehouse and campus inspec
 
 ## Current Phase
 
-Phase 5 is in progress: the workspace contains the control baseline plus a DualSense teleoperation pipeline. The `gamepad_interface` lifecycle node maps `/joy` to stamped differential-drive commands, mode-request topics, rosbag request topics, and an ESTOP lock topic.
+Phase 6 is in progress: the workspace contains the control and DualSense teleoperation baselines plus a mission-management layer. The `mode_manager` lifecycle node publishes the current rover mode, accepts `/set_mode` requests, handles `/patrol_route` action goals in simulation mode, and `mission_logger` writes structured JSONL mission events.
 
 ## Workspace Layout
 
@@ -38,9 +38,9 @@ colcon test
 colcon test-result --verbose
 ```
 
-Latest Phase 5 verification result: `sentinel_teleop` builds and its unit tests cover deadman, speed scaling, ESTOP latch/clear, mode buttons, and record request detection. Runtime validation uses `ros2 launch sentinel_bringup teleop.launch.py`.
+Latest Phase 6 verification result: `sentinel_mission` and `sentinel_bringup` build and test cleanly. Runtime validation uses `ros2 launch sentinel_bringup mission.launch.py`, then checks `/mode_manager`, `/rover_mode`, `/set_mode`, `/patrol_route`, and `log/mission_events.jsonl`.
 
-For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-3 smoke tests and future Phase 4-10 acceptance-test templates.
+For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-6 smoke tests and future Phase 7-10 acceptance-test templates.
 
 ## Simulation
 
@@ -97,6 +97,18 @@ For repeatable command-line validation without touching the controller:
 ```bash
 ros2 launch sentinel_teleop gamepad.launch.py start_joy:=false
 ```
+
+## Mission Management
+
+Launch the mission baseline:
+
+```bash
+ros2 launch sentinel_bringup mission.launch.py
+```
+
+`mode_manager` is a C++ lifecycle node. It publishes `/rover_mode` with transient-local QoS, provides `/set_mode`, accepts mode requests from `/rover_mode_request`, and exposes the `/patrol_route` action. Because Nav2 is not installed on the current `nexus` image, Phase 6 patrol execution is a mission-manager simulation: it publishes PATROL feedback for each waypoint and returns to TELEOP when the route completes.
+
+`mission_logger` is a Python node using Lyrical's available `rclpy.experimental.AsyncNode`. It records mode changes and record start/stop requests to `log/mission_events.jsonl`.
 
 ## Interfaces
 

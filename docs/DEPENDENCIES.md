@@ -52,6 +52,7 @@ source /opt/ros/lyrical/setup.bash
 | Phase 3 simulation package check | `colcon build --packages-select sentinel_description sentinel_gazebo` and matching `colcon test` completed: 46 tests, 0 errors, 0 failures, 1 skipped |
 | Phase 4 controller dependency check | `controller_manager` is installed, but `ros2controlcli`, `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster` are missing |
 | Phase 4 package check | `colcon build --packages-select sentinel_description sentinel_control sentinel_gazebo` and matching `colcon test` completed: 47 tests, 0 errors, 0 failures, 1 skipped |
+| Phase 6 mission package check | `colcon build --packages-select sentinel_mission sentinel_bringup` and matching `colcon test` completed: 75 tests, 0 errors, 0 failures, 4 skipped |
 
 ### Gazebo / gz
 
@@ -176,6 +177,27 @@ These items are required for later phases but were not installed or not usable d
 No network downloads, package installs, `sudo`, system service changes, udev rules, or user group changes were executed by Codex during this Phase 0 refresh. A later source refresh showed that the vendored Gazebo stack is already available through `/opt/ros/lyrical/setup.bash`.
 
 Phase 5 note: because `twist_mux` is not installed, the current teleop launch remaps `gamepad_interface` directly to Lyrical's `/diff_drive_controller/cmd_vel` `TwistStamped` input. The node still publishes `/cmd_vel_lock` so the later mux integration can be added after the package is installed with operator approval.
+
+### Phase 6 Mission Dependencies
+
+Installed and used:
+
+```text
+diagnostic_updater
+rclcpp_lifecycle
+rclcpp_action
+rclpy.experimental.AsyncNode
+rclcpp::experimental::executors::EventsExecutor
+```
+
+Missing:
+
+```text
+nav2_msgs
+nav2_bringup
+```
+
+The original Phase 6 design called for Nav2 handoff and a `CallbackGroupEventsExecutor`. On this Lyrical installation, `nav2_msgs` and `nav2_bringup` are not installed, and the available executor API is `rclcpp::experimental::executors::EventsExecutor`. Phase 6 therefore implements the mission manager, mode service, teleop mode-request integration, patrol action contract, and JSONL logging now; the patrol action simulates waypoint execution until Phase 7 adds real Nav2 integration.
 
 ## Phase 1 Package Baseline
 

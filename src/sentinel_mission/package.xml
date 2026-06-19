@@ -12,9 +12,9 @@
   <depend>rclcpp</depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>rclcpp_action</depend>
+  <depend>rclpy</depend>
   <depend>sentinel_interfaces</depend>
-  <depend>nav2_msgs</depend>
-  <depend>diagnostic_updater</depend>
+  <depend>std_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

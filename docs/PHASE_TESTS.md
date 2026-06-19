@@ -1,6 +1,6 @@
 # Phase Test Playbook
 
-这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-5 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 6-10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时每个模板会根据实际代码继续更新成实测命令。
+这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-6 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 7-10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时每个模板会根据实际代码继续更新成实测命令。
 
 通用准备命令：
 
@@ -274,7 +274,22 @@ wait "${launch_pid}" || true
 
 ## Phase 6 - Mission Management
 
-状态：待实现。完成后用下面命令验证 `mode_manager` lifecycle、`SetMode` service、`PatrolRoute` action 和 mission logger。
+目标：验证 `mode_manager` lifecycle、latched-style `/rover_mode`、`SetMode` service、`PatrolRoute` action 和 mission logger JSONL 输出。
+
+### Package Check
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/lyrical/setup.bash
+
+colcon build --packages-select sentinel_mission sentinel_bringup --event-handlers console_direct+
+colcon test --packages-select sentinel_mission sentinel_bringup --event-handlers console_direct+
+colcon test-result --verbose
+```
+
+期望结果：相关包构建和测试均通过。当前 `nexus` 实测汇总为 `75 tests, 0 errors, 0 failures, 4 skipped`。
+
+### Runtime Smoke Test
 
 ```bash
 cd ~/ros2_ws
@@ -286,15 +301,16 @@ launch_pid=$!
 sleep 5
 
 ros2 lifecycle get /mode_manager
-ros2 service call /set_mode sentinel_interfaces/srv/SetMode "{mode: 0}"
+ros2 topic echo /rover_mode --once
+ros2 service call /set_mode sentinel_interfaces/srv/SetMode "{mode: 1}"
 ros2 topic echo /rover_mode --once
 
-ros2 action list -t | grep PatrolRoute
+ros2 action list -t | grep patrol_route
 ros2 action send_goal /patrol_route sentinel_interfaces/action/PatrolRoute \
-  "{waypoints: [{name: 'dock', pose: {position: {x: 0.0, y: 0.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}, dwell_seconds: 1.0}], loop_forever: false}" \
+  "{waypoints: [{name: dock, pose: {position: {x: 0.0, y: 0.0, z: 0.0}, orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}}, dwell_seconds: 0.2}], loop_forever: false}" \
   --feedback
 
-ls -la log mission_logs 2>/dev/null || true
+tail -n 20 log/mission_events.jsonl
 
 kill -INT "${launch_pid}"
 wait "${launch_pid}" || true
@@ -302,11 +318,13 @@ wait "${launch_pid}" || true
 
 期望结果：
 
-- `/mode_manager` 可进入 active
-- `/set_mode` 返回 success
-- `/rover_mode` 使用 latched-style QoS，后启动的 echo 也能收到当前模式
-- `PatrolRoute` action 有 feedback/result
-- mission logger 写出结构化任务日志
+- `/mode_manager` 是 `active`
+- 第一次 `/rover_mode` echo 能收到当前 `TELEOP`
+- `/set_mode` 返回 `success=True`，第二次 `/rover_mode` echo 能收到 `MAPPING`
+- `/patrol_route` action 有 feedback，并以 `SUCCEEDED` 结束，`waypoints_completed: 1`
+- `log/mission_events.jsonl` 包含 `MAPPING`、`PATROL`、`TELEOP` 三类 mode 事件
+
+当前 `nexus` 实测：`/set_mode` 将模式切到 `MAPPING`；单 waypoint `dock` action 成功完成；mission log 记录 `MAPPING -> PATROL -> TELEOP`。由于 Nav2 尚未安装，Phase 6 的 patrol 执行是 mission-manager simulation mode，真实 Nav2 路线执行留到 Phase 7。
 
 ## Phase 7 - Navigation And Mapping
 
