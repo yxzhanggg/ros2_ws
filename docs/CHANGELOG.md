@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-06-20 - Ubuntu 24.04 / ROS 2 Jazzy Port
+
+### Added
+
+- Added `docs/JAZZY_PORT.md` with Jazzy install commands, branch relationship notes, and a retest checklist.
+
+### Changed
+
+- Updated README to identify this branch as the Ubuntu 24.04 / ROS 2 Jazzy source port.
+- Replaced the Lyrical experimental executor in `mode_manager_main.cpp` with `MultiThreadedExecutor`.
+- Added an `AsyncNode` fallback in `mission_logger.py` so the logger can run on Jazzy when the experimental API is absent.
+- Removed the hard-coded Gazebo `gz_version:=10` launch argument from `sentinel_gazebo`.
+- Updated Phase 7 missing-dependency text to reference Jazzy packages.
+
+### Verification
+
+- This branch has source-level compatibility edits only. Runtime build/test must be run on Ubuntu 24.04 with ROS 2 Jazzy before marking it validated.
+
 ## 2026-06-20 - Final Acceptance Audit
 
 ### Added

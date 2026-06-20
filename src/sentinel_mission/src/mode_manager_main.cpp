@@ -15,14 +15,14 @@
 #include <memory>
 
 #include "rclcpp/rclcpp.hpp"
-#include "rclcpp/experimental/executors/events_executor/events_executor.hpp"
+#include "rclcpp/executors/multi_threaded_executor.hpp"
 #include "sentinel_mission/mode_manager.hpp"
 
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<sentinel_mission::ModeManager>();
-  rclcpp::experimental::executors::EventsExecutor executor;
+  rclcpp::executors::MultiThreadedExecutor executor;
   executor.add_node(node->get_node_base_interface());
   executor.spin();
   rclcpp::shutdown();

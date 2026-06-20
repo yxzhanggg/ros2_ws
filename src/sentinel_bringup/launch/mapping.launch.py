@@ -49,7 +49,7 @@ def _launch_setup(context, *args, **kwargs):
                 msg=[
                     'Phase 7 mapping dependencies are missing: ',
                     ', '.join(missing),
-                    '. Install the matching ROS Lyrical packages, then rerun this launch.',
+                    '. Install the matching ROS Jazzy packages, then rerun this launch.',
                 ]
             ),
             EmitEvent(event=Shutdown(reason='missing Phase 7 mapping dependencies')),

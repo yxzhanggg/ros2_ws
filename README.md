@@ -1,10 +1,16 @@
-# Nexus Sentinel ROS 2 Workspace
+# Nexus Sentinel ROS 2 Workspace - Ubuntu 24.04 / ROS 2 Jazzy
 
 Nexus Sentinel is a ROS 2 simulation workspace for a warehouse and campus inspection robot. The robot is intended to support autonomous patrol, mapping, operator teleoperation with a PS5 DualSense controller, and later safety/diagnostic workflows.
 
+## Branch Target
+
+This branch targets Ubuntu 24.04 and ROS 2 Jazzy. It was ported from the validated Ubuntu 26.04 / ROS 2 Lyrical branch and keeps the same package layout and robot behavior goals.
+
+The original validated branch is `ubuntu26-ros2-lyrical`. Historical phase documents still include Lyrical command output so the migration has an audit trail. Jazzy-specific notes and commands are in `docs/JAZZY_PORT.md`.
+
 ## Current Phase
 
-Phase 10 is complete: the workspace contains control, DualSense teleoperation, mission-management, navigation/mapping launch, composable perception, diagnostics, observability, integration-test, and documentation baselines. The project now includes `docs/ENGINEERING.md` for technical readers and `docs/LEARN_ROS2.md` for new ROS 2 learners.
+Phase 10 is complete as a source port: the workspace contains control, DualSense teleoperation, mission-management, navigation/mapping launch, composable perception, diagnostics, observability, integration-test, and documentation baselines. Runtime validation must be repeated on a real Ubuntu 24.04 / Jazzy host.
 
 ## Workspace Layout
 
@@ -35,13 +41,13 @@ On `nexus`:
 
 ```bash
 cd ~/ros2_ws
-source /opt/ros/lyrical/setup.bash
+source /opt/ros/jazzy/setup.bash
 colcon build
 colcon test
 colcon test-result --verbose
 ```
 
-Latest Phase 10 verification result: documentation acceptance checks pass for README, `docs/ENGINEERING.md`, `docs/LEARN_ROS2.md`, `docs/DEPENDENCIES.md`, `docs/CHANGELOG.md`, and `docs/PHASE_TESTS.md`. The Phase 9 `sentinel_mission` tests remain green and provide the latest launch-testing runtime coverage.
+The Lyrical branch's latest full verification result was 116 tests, 0 errors, 0 failures, 8 skipped. This Jazzy branch must be rebuilt and retested on Ubuntu 24.04 before treating it as runtime-validated.
 
 For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-10 smoke tests and documentation acceptance checks.
 
@@ -51,7 +57,7 @@ On `nexus`:
 
 ```bash
 cd ~/ros2_ws
-source /opt/ros/lyrical/setup.bash
+source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 
 ros2 launch sentinel_gazebo sim.launch.py headless:=true spawn_controllers:=true
@@ -72,7 +78,7 @@ Launch the headless Gazebo simulation on `nexus`:
 
 ```bash
 cd ~/ros2_ws
-source /opt/ros/lyrical/setup.bash
+source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 ros2 launch sentinel_gazebo sim.launch.py headless:=true
 ```
@@ -104,7 +110,7 @@ Use `spawn_controllers:=true` with the simulation launch:
 ros2 launch sentinel_gazebo sim.launch.py headless:=true spawn_controllers:=true
 ```
 
-Expected active controllers are `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster`. In Lyrical, the differential-drive command and odometry topics are namespaced as `/diff_drive_controller/cmd_vel` and `/diff_drive_controller/odom`; the IMU broadcaster publishes `/imu_sensor_broadcaster/imu`, while the Gazebo bridge also publishes `/imu`.
+Expected active controllers are `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster`. Verify Jazzy's current `diff_drive_controller` command type before final teleop/mux wiring; the source port keeps the stamped command path used by the Lyrical branch until retested.
 
 ## Teleoperation
 
@@ -132,7 +138,7 @@ ros2 launch sentinel_bringup mission.launch.py
 
 `mode_manager` is a C++ lifecycle node. It publishes `/rover_mode` with transient-local QoS, provides `/set_mode`, accepts mode requests from `/rover_mode_request`, and exposes the `/patrol_route` action. Because Nav2 is not installed on the current `nexus` image, Phase 6 patrol execution is a mission-manager simulation: it publishes PATROL feedback for each waypoint and returns to TELEOP when the route completes.
 
-`mission_logger` is a Python node using Lyrical's available `rclpy.experimental.AsyncNode`. It records mode changes and record start/stop requests to `log/mission_events.jsonl`.
+`mission_logger` is a Python node with an AsyncNode compatibility fallback for Jazzy. It records mode changes and record start/stop requests to `log/mission_events.jsonl`.
 
 ## Navigation And Mapping
 
@@ -199,7 +205,7 @@ Inspect an interface on `nexus`:
 
 ```bash
 cd ~/ros2_ws
-source /opt/ros/lyrical/setup.bash
+source /opt/ros/jazzy/setup.bash
 source install/setup.bash
 ros2 interface show sentinel_interfaces/action/PatrolRoute
 ```
@@ -209,6 +215,7 @@ ros2 interface show sentinel_interfaces/action/PatrolRoute
 | Document | Audience |
 | --- | --- |
 | `docs/ENGINEERING.md` | Engineering architecture, runtime graph, concept mapping, decisions, debugging, tests, and extension guide |
+| `docs/JAZZY_PORT.md` | Ubuntu 24.04 / ROS 2 Jazzy port notes, dependency commands, and retest checklist |
 | `docs/LEARN_ROS2.md` | Chinese beginner tutorial using this project as the teaching example |
 | `docs/PHASE_TESTS.md` | Copyable commands for each completed phase |
 | `docs/ACCEPTANCE.md` | Final Phase 0-10 audit, acceptance matrix, and blocked runtime gates |

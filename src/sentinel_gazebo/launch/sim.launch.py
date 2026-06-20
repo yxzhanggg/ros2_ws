@@ -94,7 +94,6 @@ def generate_launch_description():
                 PythonLaunchDescriptionSource(gz_launch),
                 launch_arguments={
                     'gz_args': ['-r -s ', world_file],
-                    'gz_version': '10',
                 }.items(),
             ),
             Node(

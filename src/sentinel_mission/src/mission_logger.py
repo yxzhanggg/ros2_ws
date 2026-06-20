@@ -24,10 +24,16 @@ import signal
 from typing import Any
 
 import rclpy
-from rclpy.experimental import AsyncNode
+from rclpy.executors import SingleThreadedExecutor
+from rclpy.node import Node
 from rclpy.qos import QoSProfile
 from sentinel_interfaces.msg import RoverMode
 from std_msgs.msg import Bool
+
+try:
+    from rclpy.experimental import AsyncNode
+except ImportError:
+    AsyncNode = Node
 
 
 class MissionLogger(AsyncNode):
@@ -74,17 +80,29 @@ async def async_main() -> None:
     """Run the async logger until ROS shuts down."""
     rclpy.init()
     node = MissionLogger()
+    executor = SingleThreadedExecutor()
+    executor.add_node(node)
     stop_event = asyncio.Event()
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, stop_event.set)
     try:
-        async with node:
-            log_task = asyncio.create_task(node.drain_events())
-            await stop_event.wait()
-            log_task.cancel()
+        log_task = asyncio.create_task(node.drain_events())
+        spin_task = asyncio.create_task(spin_executor(executor))
+        await stop_event.wait()
+        log_task.cancel()
+        spin_task.cancel()
     finally:
+        executor.remove_node(node)
+        node.destroy_node()
         rclpy.shutdown()
+
+
+async def spin_executor(executor: SingleThreadedExecutor) -> None:
+    """Spin ROS callbacks without blocking asyncio file writes."""
+    while rclpy.ok():
+        executor.spin_once(timeout_sec=0.1)
+        await asyncio.sleep(0)
 
 
 def main() -> None:
