@@ -4,7 +4,7 @@ Nexus Sentinel is a ROS 2 simulation workspace for a warehouse and campus inspec
 
 ## Current Phase
 
-Phase 9 is in progress: the workspace contains the control, DualSense teleoperation, mission-management, navigation/mapping launch, composable perception, diagnostics, observability, and integration-test baselines. `sentinel_mission` now publishes battery/controller diagnostics and includes a launch_testing integration test for mode switching plus `/diagnostics`.
+Phase 10 is complete: the workspace contains control, DualSense teleoperation, mission-management, navigation/mapping launch, composable perception, diagnostics, observability, integration-test, and documentation baselines. The project now includes `docs/ENGINEERING.md` for technical readers and `docs/LEARN_ROS2.md` for new ROS 2 learners.
 
 ## Workspace Layout
 
@@ -22,6 +22,8 @@ ros2_ws/
 ├── docs/
 │   ├── CHANGELOG.md
 │   ├── DEPENDENCIES.md
+│   ├── ENGINEERING.md
+│   ├── LEARN_ROS2.md
 │   └── PHASE_TESTS.md
 └── README.md
 ```
@@ -38,9 +40,30 @@ colcon test
 colcon test-result --verbose
 ```
 
-Latest Phase 9 verification result: `sentinel_mission` builds and tests cleanly, including a `launch_testing` integration test. Runtime validation launches diagnostics, receives `/diagnostics`, and records examples for `ros2 doctor --report`, `ros2 topic bw`, and `ros2 service info --verbose`.
+Latest Phase 10 verification result: documentation acceptance checks pass for README, `docs/ENGINEERING.md`, `docs/LEARN_ROS2.md`, `docs/DEPENDENCIES.md`, `docs/CHANGELOG.md`, and `docs/PHASE_TESTS.md`. The Phase 9 `sentinel_mission` tests remain green and provide the latest launch-testing runtime coverage.
 
-For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-9 smoke tests and a future Phase 10 documentation acceptance template.
+For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-10 smoke tests and documentation acceptance checks.
+
+## Quick Start
+
+On `nexus`:
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/lyrical/setup.bash
+source install/setup.bash
+
+ros2 launch sentinel_gazebo sim.launch.py headless:=true spawn_controllers:=true
+```
+
+In another shell, try one focused subsystem:
+
+```bash
+ros2 launch sentinel_teleop gamepad.launch.py start_joy:=false
+ros2 launch sentinel_bringup mission.launch.py
+ros2 launch sentinel_perception perception.launch.py
+ros2 launch sentinel_mission diagnostics.launch.py
+```
 
 ## Simulation
 
@@ -179,3 +202,13 @@ source /opt/ros/lyrical/setup.bash
 source install/setup.bash
 ros2 interface show sentinel_interfaces/action/PatrolRoute
 ```
+
+## Documentation
+
+| Document | Audience |
+| --- | --- |
+| `docs/ENGINEERING.md` | Engineering architecture, runtime graph, concept mapping, decisions, debugging, tests, and extension guide |
+| `docs/LEARN_ROS2.md` | Chinese beginner tutorial using this project as the teaching example |
+| `docs/PHASE_TESTS.md` | Copyable commands for each completed phase |
+| `docs/DEPENDENCIES.md` | Real environment, installed/missing dependencies, and API differences |
+| `docs/CHANGELOG.md` | Phase-by-phase implementation history |

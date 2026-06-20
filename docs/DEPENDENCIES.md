@@ -56,6 +56,7 @@ source /opt/ros/lyrical/setup.bash
 | Phase 7 bringup package check | `colcon build --packages-select sentinel_bringup` and matching `colcon test` completed: 84 tests, 0 errors, 0 failures, 4 skipped |
 | Phase 8 perception package check | `colcon build --packages-select sentinel_perception` and matching `colcon test` completed: 108 tests, 0 errors, 0 failures, 8 skipped |
 | Phase 9 mission diagnostics check | `colcon build --packages-select sentinel_mission` and matching `colcon test` completed: 116 tests, 0 errors, 0 failures, 8 skipped |
+| Phase 10 documentation check | README and docs acceptance greps passed for `ENGINEERING.md`, `LEARN_ROS2.md`, `DEPENDENCIES.md`, `CHANGELOG.md`, and `PHASE_TESTS.md` |
 
 ### Gazebo / gz
 
@@ -310,6 +311,17 @@ ros2 doctor --report sees ROS_DISTRO=lyrical and ROS_AUTOMATIC_DISCOVERY_RANGE=S
 ros2 service info /set_mode --verbose reports RELIABLE request/response QoS and the SetMode type hash.
 ros2 topic bw /diagnostics reports roughly 1.15-1.46 KB/s with 0.35 KB messages.
 ```
+
+## Phase 10 Documentation Baseline
+
+Phase 10 adds the two requested audience-specific documents:
+
+| Document | Audience | Notes |
+| --- | --- | --- |
+| `docs/ENGINEERING.md` | Technical readers | Architecture, interfaces, QoS, design decisions, API differences, build/run/debug, testing, extensions |
+| `docs/LEARN_ROS2.md` | ROS 2 beginners | Chinese tutorial organized as concept explanation, project reference, hands-on commands, and self-check questions |
+
+No additional system packages were installed for Phase 10. The documentation explicitly records unresolved runtime dependency gaps for Nav2/slam_toolbox/twist_mux and the local Lyrical API differences observed in earlier phases.
 
 ## Phase 1 Package Baseline
 

@@ -1,6 +1,6 @@
 # Phase Test Playbook
 
-这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-9 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时模板会根据实际文档继续更新成实测命令。
+这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-10 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行。
 
 通用准备命令：
 
@@ -561,7 +561,7 @@ Message size mean: 0.35 KB
 
 ## Phase 10 - Documentation
 
-状态：待实现。完成后用下面命令确认最终文档完整性和快速上手路径。
+目标：确认最终文档完整性、受众区分和快速上手路径。
 
 ```bash
 cd ~/ros2_ws
@@ -577,6 +577,10 @@ grep -n "Phase 0" docs/PHASE_TESTS.md
 grep -n "Phase 10" docs/PHASE_TESTS.md
 grep -n "概念" docs/ENGINEERING.md
 grep -n "自测" docs/LEARN_ROS2.md
+grep -n "Quick Start" README.md
+grep -n "Documentation" README.md
+grep -n "Nexus Sentinel 工程文档" docs/ENGINEERING.md
+grep -n "跟着 Nexus Sentinel 学 ROS 2" docs/LEARN_ROS2.md
 ```
 
 期望结果：
@@ -585,3 +589,5 @@ grep -n "自测" docs/LEARN_ROS2.md
 - `docs/ENGINEERING.md` 覆盖架构、接口、QoS、测试策略、排障和扩展
 - `docs/LEARN_ROS2.md` 用本项目实际文件解释 ROS 2 概念并带自测题
 - 本文档覆盖所有 Phase 的测试命令
+
+当前 `nexus` 实测：上述文件存在性和 grep 检查均通过。

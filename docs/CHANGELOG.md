@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-06-20 - Phase 10 Documentation Baseline
+
+### Added
+
+- Added `docs/ENGINEERING.md`, a Chinese engineering document covering architecture, package roles, runtime graph, ROS 2 concept mapping, design decisions, API differences, build/run/debug commands, testing strategy, and extension guidance.
+- Added `docs/LEARN_ROS2.md`, a Chinese beginner tutorial that teaches ROS 2 concepts through the actual Nexus Sentinel files and commands, with self-check questions.
+
+### Changed
+
+- Updated README with Phase 10 status, quick start commands, and a documentation index.
+- Updated `docs/PHASE_TESTS.md` with concrete Phase 10 documentation acceptance commands.
+- Updated `docs/DEPENDENCIES.md` with the Phase 10 documentation verification record.
+
+### Verified
+
+- Documentation acceptance checks passed for README, `docs/ENGINEERING.md`, `docs/LEARN_ROS2.md`, `docs/DEPENDENCIES.md`, `docs/CHANGELOG.md`, and `docs/PHASE_TESTS.md`.
+- Phase 9 runtime coverage remains represented by the green `sentinel_mission` launch test: 116 tests, 0 errors, 0 failures, 8 skipped.
+
 ## 2026-06-20 - Phase 9 Diagnostics and Observability Baseline
 
 ### Added
