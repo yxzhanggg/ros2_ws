@@ -14,6 +14,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, EmitEvent, RegisterEventHandler
+from launch.conditions import IfCondition
 from launch.event_handlers import OnProcessStart
 from launch.events import matches_action
 from launch.substitutions import LaunchConfiguration
@@ -25,6 +26,7 @@ from lifecycle_msgs.msg import Transition
 
 def generate_launch_description():
     log_path = LaunchConfiguration('log_path')
+    start_health_monitor = LaunchConfiguration('start_health_monitor')
 
     mode_manager = LifecycleNode(
         package='sentinel_mission',
@@ -70,6 +72,11 @@ def generate_launch_description():
                 default_value='log/mission_events.jsonl',
                 description='Mission logger JSONL output path.',
             ),
+            DeclareLaunchArgument(
+                'start_health_monitor',
+                default_value='true',
+                description='Start Phase 9 diagnostic health monitor.',
+            ),
             mode_manager,
             configure_mode_manager,
             activate_mode_manager,
@@ -79,6 +86,13 @@ def generate_launch_description():
                 name='mission_logger',
                 output='screen',
                 parameters=[{'log_path': log_path}],
+            ),
+            Node(
+                package='sentinel_mission',
+                executable='health_monitor',
+                name='health_monitor',
+                output='screen',
+                condition=IfCondition(start_health_monitor),
             ),
         ]
     )

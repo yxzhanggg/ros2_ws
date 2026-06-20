@@ -29,6 +29,12 @@ install(TARGETS
 )
 
 install(PROGRAMS
+  src/health_monitor.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME health_monitor
+)
+
+install(PROGRAMS
   src/mission_logger.py
   DESTINATION lib/${PROJECT_NAME}
   RENAME mission_logger
@@ -47,6 +53,8 @@ install(
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
+  find_package(launch_testing_ament_cmake REQUIRED)
+  add_launch_test(test/test_mission_diagnostics_launch.py TIMEOUT 30)
 endif()
 
 ament_package()

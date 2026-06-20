@@ -1,6 +1,6 @@
 # Phase Test Playbook
 
-这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-8 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 9-10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时每个模板会根据实际代码继续更新成实测命令。
+这份文档给操作者一组按 Phase 编排的可复制测试命令。Phase 0-9 已经完成到当前定义的可运行基线，下面的命令应当可以在 `nexus` 上直接运行；Phase 10 是后续阶段的验收模板，等对应 Phase 实现后再运行，届时模板会根据实际文档继续更新成实测命令。
 
 通用准备命令：
 
@@ -473,31 +473,91 @@ wait "${launch_pid}" || true
 
 ## Phase 9 - Diagnostics, Observability, And Tests
 
-状态：待实现。完成后用下面命令验证诊断、观测命令和集成测试。
+目标：验证 `diagnostic_updater` 诊断输出、`launch_testing` 集成测试、以及 ROS 2 观测命令示例。
 
 ```bash
 cd ~/ros2_ws
 source /opt/ros/lyrical/setup.bash
 source install/setup.bash
 
-colcon test --event-handlers console_direct+
+colcon build --packages-select sentinel_mission --event-handlers console_direct+
+colcon test --packages-select sentinel_mission --event-handlers console_direct+
 colcon test-result --verbose
+```
 
-ros2 doctor --report
-ros2 topic list | sort
-ros2 topic bw /scan
-ros2 service list -t
-ros2 service info /set_mode --verbose
+期望结果：`sentinel_mission` 构建和测试通过，包含 `test_mission_diagnostics_launch.py`。当前 `nexus` 实测汇总为 `116 tests, 0 errors, 0 failures, 8 skipped`。
+
+### Diagnostics Smoke Test
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/lyrical/setup.bash
+source install/setup.bash
+
+ros2 launch sentinel_mission diagnostics.launch.py &
+launch_pid=$!
+sleep 3
 
 ros2 topic echo /diagnostics --once
+
+kill -INT "${launch_pid}"
+wait "${launch_pid}" || true
 ```
 
 期望结果：
 
-- 全工作区测试通过
-- launch_testing 集成测试覆盖仿真关键话题/服务/action
-- `/diagnostics` 至少包含电池和控制器健康状态
-- 文档中记录 `ros2 doctor`、`ros2 topic bw`、`ros2 service info --verbose` 的实际输出示例
+- `/diagnostics` 包含 `health_monitor: battery`
+- `/diagnostics` 包含 `health_monitor: controller`
+- battery message 是 `battery nominal`
+- controller message 是 `controller heartbeat nominal`
+
+### Observability Commands
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/lyrical/setup.bash
+source install/setup.bash
+
+ros2 doctor --report | sed -n '1,80p'
+
+ros2 launch sentinel_bringup mission.launch.py &
+launch_pid=$!
+sleep 5
+
+ros2 service info /set_mode --verbose
+timeout 5s ros2 topic bw /diagnostics || true
+
+kill -INT "${launch_pid}"
+wait "${launch_pid}" || true
+```
+
+当前 `nexus` 实测摘录：
+
+```text
+ros2 doctor --report:
+ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET, ROS_DISTRO=lyrical
+network device wlp0s20f3 inet 192.168.1.17
+
+ros2 service info /set_mode --verbose:
+Type: sentinel_interfaces/srv/SetMode
+Node name: mode_manager
+Service type hash: RIHS01_c821b3398626b934653ca8c463691318d057d3e7d5d9f2bc549cc2ac6e33c7a9
+Reliability: RELIABLE
+Durability: VOLATILE
+
+ros2 topic bw /diagnostics:
+1.46 KB/s from 3 messages
+1.22 KB/s from 6 messages
+1.15 KB/s from 9 messages
+Message size mean: 0.35 KB
+```
+
+期望结果：
+
+- `ros2 doctor --report` 能输出 ROS 环境、网络和包版本信息
+- `/set_mode --verbose` 能展示 service type、endpoint 和 QoS
+- `/diagnostics` 带宽能采样到持续发布的诊断消息
+- `timeout` 结束 `ros2 topic bw` 时可能打印 shutdown wait-set 警告，采样行仍有效
 
 ## Phase 10 - Documentation
 

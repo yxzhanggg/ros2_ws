@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-06-20 - Phase 9 Diagnostics and Observability Baseline
+
+### Added
+
+- Added `sentinel_mission.health_monitor`, a Python `diagnostic_updater` node that publishes battery and controller health on `/diagnostics`.
+- Added `sentinel_mission/launch/diagnostics.launch.py` for standalone diagnostic validation.
+- Extended `sentinel_mission/launch/mission.launch.py` with an optional `start_health_monitor` argument.
+- Added a `launch_testing` integration test that launches the mission stack, calls `/set_mode`, and verifies `/diagnostics` contains battery and controller statuses.
+
+### Changed
+
+- Updated README, `docs/PHASE_TESTS.md`, and `docs/DEPENDENCIES.md` with Phase 9 diagnostic, launch test, and observability commands.
+- Recorded actual examples for `ros2 doctor --report`, `ros2 topic bw /diagnostics`, and `ros2 service info /set_mode --verbose`.
+
+### Verified
+
+- `colcon build --packages-select sentinel_mission --event-handlers console_direct+` passed.
+- `colcon test --packages-select sentinel_mission --event-handlers console_direct+` plus `colcon test-result --verbose` passed: 116 tests, 0 errors, 0 failures, 8 skipped.
+- `ros2 launch sentinel_mission diagnostics.launch.py` published `/diagnostics` with `health_monitor: battery` and `health_monitor: controller`.
+- The launch test switched the mode manager to `MAPPING` via `/set_mode` and observed diagnostic output.
+- `ros2 topic bw /diagnostics` reported about `1.15-1.46 KB/s` with diagnostic messages around `0.35 KB`.
+
 ## 2026-06-20 - Phase 8 Composable Perception Baseline
 
 ### Added

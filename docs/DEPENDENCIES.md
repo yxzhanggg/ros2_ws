@@ -55,6 +55,7 @@ source /opt/ros/lyrical/setup.bash
 | Phase 6 mission package check | `colcon build --packages-select sentinel_mission sentinel_bringup` and matching `colcon test` completed: 75 tests, 0 errors, 0 failures, 4 skipped |
 | Phase 7 bringup package check | `colcon build --packages-select sentinel_bringup` and matching `colcon test` completed: 84 tests, 0 errors, 0 failures, 4 skipped |
 | Phase 8 perception package check | `colcon build --packages-select sentinel_perception` and matching `colcon test` completed: 108 tests, 0 errors, 0 failures, 8 skipped |
+| Phase 9 mission diagnostics check | `colcon build --packages-select sentinel_mission` and matching `colcon test` completed: 116 tests, 0 errors, 0 failures, 8 skipped |
 
 ### Gazebo / gz
 
@@ -279,6 +280,35 @@ Runtime smoke result:
   2  /image_marker_detector
 /scan_filtered clamps invalid ranges to 12.0
 /detections publishes {"mean_brightness":255.00,"bright_marker":true}
+```
+
+### Phase 9 Diagnostics and Observability Dependencies
+
+Installed and used:
+
+```text
+diagnostic_msgs
+diagnostic_updater
+launch_testing
+launch_testing_ament_cmake
+launch_testing_ros
+```
+
+`launch_pytest` is not available on this Lyrical image, so Phase 9 uses the installed `launch_testing_ament_cmake` `add_launch_test()` path and `launch_testing.launch_test` runner.
+
+Runtime diagnostics:
+
+```text
+health_monitor: battery     OK  battery nominal
+health_monitor: controller  OK  controller heartbeat nominal
+```
+
+Observed Phase 9 CLI output:
+
+```text
+ros2 doctor --report sees ROS_DISTRO=lyrical and ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET.
+ros2 service info /set_mode --verbose reports RELIABLE request/response QoS and the SetMode type hash.
+ros2 topic bw /diagnostics reports roughly 1.15-1.46 KB/s with 0.35 KB messages.
 ```
 
 ## Phase 1 Package Baseline

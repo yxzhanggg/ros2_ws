@@ -4,7 +4,7 @@ Nexus Sentinel is a ROS 2 simulation workspace for a warehouse and campus inspec
 
 ## Current Phase
 
-Phase 8 is in progress: the workspace contains the control, DualSense teleoperation, mission-management, navigation/mapping launch, and composable perception baselines. `sentinel_perception` now provides a C++ component container with a scan filter and an image marker detector using intra-process communication.
+Phase 9 is in progress: the workspace contains the control, DualSense teleoperation, mission-management, navigation/mapping launch, composable perception, diagnostics, observability, and integration-test baselines. `sentinel_mission` now publishes battery/controller diagnostics and includes a launch_testing integration test for mode switching plus `/diagnostics`.
 
 ## Workspace Layout
 
@@ -38,9 +38,9 @@ colcon test
 colcon test-result --verbose
 ```
 
-Latest Phase 8 verification result: `sentinel_perception` builds and tests cleanly. Runtime validation launches `sentinel_perception_container`, confirms both components are loaded, publishes synthetic `/scan` and `/camera/image`, and receives `/scan_filtered` plus `/detections`.
+Latest Phase 9 verification result: `sentinel_mission` builds and tests cleanly, including a `launch_testing` integration test. Runtime validation launches diagnostics, receives `/diagnostics`, and records examples for `ros2 doctor --report`, `ros2 topic bw`, and `ros2 service info --verbose`.
 
-For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-8 smoke tests and future Phase 9-10 acceptance-test templates.
+For phase-by-phase commands you can run yourself, see `docs/PHASE_TESTS.md`. It includes completed Phase 0-9 smoke tests and a future Phase 10 documentation acceptance template.
 
 ## Simulation
 
@@ -142,6 +142,23 @@ The launch starts `rclcpp_components`' `component_container_mt` with intra-proce
 | `sentinel_perception::ImageMarkerComponent` | `/camera/image` | `/detections` | Emits a lightweight JSON detection summary based on image brightness |
 
 Phase 0 found no NVIDIA/CUDA stack on `nexus`, so Phase 8 documents GPU/rosidl buffer zero-copy as disabled and validates the CPU intra-process component path instead.
+
+## Diagnostics And Observability
+
+Launch mission diagnostics:
+
+```bash
+ros2 launch sentinel_mission diagnostics.launch.py
+```
+
+`health_monitor` uses `diagnostic_updater` to publish `/diagnostics` entries for:
+
+| Diagnostic | Meaning |
+| --- | --- |
+| `health_monitor: battery` | Simulated battery percentage and drain rate |
+| `health_monitor: controller` | Simulated controller heartbeat freshness |
+
+`sentinel_mission` also has a `launch_testing` integration test that starts the mission stack, calls `/set_mode`, and waits for `/diagnostics`.
 
 ## Interfaces
 

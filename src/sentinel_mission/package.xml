@@ -13,11 +13,16 @@
   <depend>rclcpp_lifecycle</depend>
   <depend>rclcpp_action</depend>
   <depend>rclpy</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>diagnostic_updater</depend>
   <depend>sentinel_interfaces</depend>
   <depend>std_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
+  <test_depend>launch_testing_ament_cmake</test_depend>
+  <test_depend>launch_testing</test_depend>
+  <test_depend>launch_testing_ros</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
