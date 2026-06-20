@@ -591,3 +591,26 @@ grep -n "跟着 Nexus Sentinel 学 ROS 2" docs/LEARN_ROS2.md
 - 本文档覆盖所有 Phase 的测试命令
 
 当前 `nexus` 实测：上述文件存在性和 grep 检查均通过。
+
+## Final Acceptance Audit
+
+目标：复核 Phase 0-10 的最终交付状态，区分已通过、需要操作者手动试手柄、以及受依赖阻塞的完整 Nav2/SLAM 闭环。
+
+```bash
+cd ~/ros2_ws
+source /opt/ros/lyrical/setup.bash
+
+colcon build --event-handlers console_direct+
+colcon test --event-handlers console_direct+
+colcon test-result --verbose
+
+test -f docs/ACCEPTANCE.md
+grep -n "Acceptance Matrix" docs/ACCEPTANCE.md
+grep -n "twist_mux" docs/ACCEPTANCE.md
+grep -n "116 tests" docs/ACCEPTANCE.md
+
+git status --short
+find . -name .DS_Store -print
+```
+
+当前 `nexus` 实测：全工作区构建/测试通过，汇总为 `8 packages finished` 和 `116 tests, 0 errors, 0 failures, 8 skipped`；远端没有 `.DS_Store` 文件。完整验收矩阵见 `docs/ACCEPTANCE.md`。

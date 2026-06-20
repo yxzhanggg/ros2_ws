@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-06-20 - Final Acceptance Audit
+
+### Added
+
+- Added `docs/ACCEPTANCE.md` with the Phase 0-10 acceptance matrix, final audit commands, current runtime dependency gates, and operator-ready smoke tests.
+
+### Changed
+
+- Updated README, `docs/DEPENDENCIES.md`, and `docs/PHASE_TESTS.md` to link the final acceptance audit.
+
+### Verified
+
+- Ran a full workspace build and test on `nexus`: 8 packages finished; 116 tests, 0 errors, 0 failures, 8 skipped.
+- Confirmed the remote workspace had no `.DS_Store` files.
+- Confirmed `controller_manager`, `ros2controlcli`, `joint_state_broadcaster`, `diff_drive_controller`, `imu_sensor_broadcaster`, `joy`, `diagnostic_updater`, and `rclcpp_components` are installed.
+- Confirmed `twist_mux`, `slam_toolbox`, `nav2_msgs`, and `nav2_bringup` are still missing, so the final Nav2/SLAM patrol loop remains a documented dependency gate.
+
 ## 2026-06-20 - Phase 10 Documentation Baseline
 
 ### Added

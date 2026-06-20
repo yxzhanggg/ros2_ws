@@ -94,7 +94,7 @@ The installed `ros_gz_bridge` package provides `ros_gz_bridge.launch.py`, but in
 
 ### Phase 4 Controller Dependencies
 
-The Phase 4 code now contains controller configuration and launch wiring, but the current `nexus` system is missing the controller packages required for runtime activation.
+Early in Phase 4, the project code contained controller configuration and launch wiring before the runtime controller packages were available. The operator later installed the missing controller packages, and the Phase 4 runtime stack was validated.
 
 Installed:
 
@@ -105,7 +105,7 @@ ros-lyrical-controller-manager-msgs
 ros-lyrical-gz-ros2-control
 ```
 
-Missing:
+Initially missing:
 
 ```text
 ros-lyrical-ros2controlcli
@@ -119,6 +119,8 @@ ros-lyrical-imu-sensor-broadcaster
 ```bash
 sudo apt-get install -y ros-lyrical-ros2controlcli ros-lyrical-joint-state-broadcaster ros-lyrical-diff-drive-controller ros-lyrical-imu-sensor-broadcaster
 ```
+
+Final audit status: `ros2controlcli`, `joint_state_broadcaster`, `diff_drive_controller`, and `imu_sensor_broadcaster` are now installed and were included in the Phase 4 runtime validation.
 
 ### Controller / DualSense
 
@@ -323,6 +325,45 @@ Phase 10 adds the two requested audience-specific documents:
 
 No additional system packages were installed for Phase 10. The documentation explicitly records unresolved runtime dependency gaps for Nav2/slam_toolbox/twist_mux and the local Lyrical API differences observed in earlier phases.
 
+## Final Acceptance Audit
+
+Checked at: 2026-06-20 during the post-Phase 10 audit.
+
+Full workspace verification on `nexus`:
+
+```text
+colcon build --event-handlers console_direct+
+colcon test --event-handlers console_direct+
+colcon test-result --verbose
+
+Summary: 8 packages finished
+Summary: 116 tests, 0 errors, 0 failures, 8 skipped
+```
+
+Final package availability snapshot:
+
+```text
+controller_manager
+diagnostic_updater
+diff_drive_controller
+imu_sensor_broadcaster
+joint_state_broadcaster
+joy
+rclcpp_components
+ros2controlcli
+```
+
+Still missing for the full SLAM/Nav2/twist arbitration product loop:
+
+```text
+twist_mux
+slam_toolbox
+nav2_msgs
+nav2_bringup
+```
+
+The detailed acceptance matrix is in `docs/ACCEPTANCE.md`.
+
 ## Phase 1 Package Baseline
 
 | Package | Build type | Phase 1 role |
@@ -383,4 +424,4 @@ Controller spawning is gated behind `spawn_controllers:=true` so the Phase 3 sim
 ros2 launch sentinel_gazebo sim.launch.py headless:=true spawn_controllers:=true
 ```
 
-Full runtime verification remains pending until the missing controller packages are installed.
+Final audit status: the controller packages are now installed. Phase 4 runtime validation recorded active controllers, odom, TF, IMU output, and command-response behavior.

@@ -20,6 +20,7 @@ ros2_ws/
 │   ├── sentinel_perception/
 │   └── sentinel_bringup/
 ├── docs/
+│   ├── ACCEPTANCE.md
 │   ├── CHANGELOG.md
 │   ├── DEPENDENCIES.md
 │   ├── ENGINEERING.md
@@ -210,5 +211,6 @@ ros2 interface show sentinel_interfaces/action/PatrolRoute
 | `docs/ENGINEERING.md` | Engineering architecture, runtime graph, concept mapping, decisions, debugging, tests, and extension guide |
 | `docs/LEARN_ROS2.md` | Chinese beginner tutorial using this project as the teaching example |
 | `docs/PHASE_TESTS.md` | Copyable commands for each completed phase |
+| `docs/ACCEPTANCE.md` | Final Phase 0-10 audit, acceptance matrix, and blocked runtime gates |
 | `docs/DEPENDENCIES.md` | Real environment, installed/missing dependencies, and API differences |
 | `docs/CHANGELOG.md` | Phase-by-phase implementation history |
